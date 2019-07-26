@@ -12,6 +12,7 @@
 #include <linux/of_device.h>
 
 #include <linux/gpio/consumer.h>
+#include <linux/pinctrl/consumer.h>
 #include <linux/regulator/consumer.h>
 
 #include <drm/drm_device.h>
@@ -79,6 +80,11 @@ struct panel_info {
 
 	struct gpio_desc *reset_gpio;
 
+	struct pinctrl *pinctrl;
+	struct pinctrl_state *active;
+	struct pinctrl_state *suspend;
+
+
 	bool prepared;
 	bool enabled;
 };
@@ -118,6 +124,23 @@ static int send_mipi_cmds(struct drm_panel *panel, const struct panel_cmd *cmds)
 	return 0;
 }
 
+static int panel_set_pinctrl_state(struct panel_info *panel, bool enable)
+{
+	int rc = 0;
+	struct pinctrl_state *state;
+
+	if (enable)
+		state = panel->active;
+	else
+		state = panel->suspend;
+
+	rc = pinctrl_select_state(panel->pinctrl, state);
+	if (rc)
+		pr_err("[%s] failed to set pin state, rc=%d\n", panel->desc->panel_name,
+			rc);
+	return rc;
+}
+
 static int lg_panel_disable(struct drm_panel *panel)
 {
 	struct panel_info *pinfo = to_panel_info(panel);
@@ -135,6 +158,12 @@ static int lg_panel_power_off(struct drm_panel *panel)
 	int i, ret = 0;
 
 	gpiod_set_value(pinfo->reset_gpio, 0);
+
+        ret = panel_set_pinctrl_state(pinfo, false);
+        if (ret) {
+                pr_err("[%s] failed to set pinctrl, rc=%d\n", pinfo->desc->panel_name, ret);
+		return ret;
+        }
 
 	for (i = 0; i < ARRAY_SIZE(pinfo->supplies); i++) {
 		ret = regulator_set_load(pinfo->supplies[i].consumer,
@@ -202,6 +231,12 @@ static int lg_panel_power_on(struct panel_info *pinfo)
 	ret = regulator_bulk_enable(ARRAY_SIZE(pinfo->supplies), pinfo->supplies);
 	if (ret < 0)
 		return ret;
+
+	ret = panel_set_pinctrl_state(pinfo, true);
+	if (ret) {
+		pr_err("[%s] failed to set pinctrl, rc=%d\n", pinfo->desc->panel_name, ret);
+		return ret;
+	}
 
 	/*
 	 * Reset sequence of LG sw43408 panel requires the panel to be
@@ -367,6 +402,40 @@ static const struct of_device_id panel_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, panel_of_match);
 
+
+static int panel_pinctrl_init(struct panel_info *panel)
+{
+	struct device *dev = &panel->link->dev;
+	int rc = 0;
+
+	panel->pinctrl = devm_pinctrl_get(dev);
+	if (IS_ERR_OR_NULL(panel->pinctrl)) {
+		rc = PTR_ERR(panel->pinctrl);
+		pr_err("failed to get pinctrl, rc=%d\n", rc);
+		goto error;
+	}
+
+	panel->active = pinctrl_lookup_state(panel->pinctrl,
+							"panel_active");
+	if (IS_ERR_OR_NULL(panel->active)) {
+		rc = PTR_ERR(panel->active);
+		pr_err("failed to get pinctrl active state, rc=%d\n", rc);
+		goto error;
+	}
+
+	panel->suspend =
+		pinctrl_lookup_state(panel->pinctrl, "panel_suspend");
+
+	if (IS_ERR_OR_NULL(panel->suspend)) {
+		rc = PTR_ERR(panel->suspend);
+		pr_err("failed to get pinctrl suspend state, rc=%d\n", rc);
+		goto error;
+	}
+
+error:
+	return rc;
+}
+
 static int panel_add(struct panel_info *pinfo)
 {
 	struct device *dev = &pinfo->link->dev;
@@ -386,6 +455,11 @@ pr_err("In sw43408 panel add\n");
 			PTR_ERR(pinfo->reset_gpio));
 		return PTR_ERR(pinfo->reset_gpio);
 	}
+
+
+	ret = panel_pinctrl_init(pinfo);
+	if (ret < 0)
+		return ret;
 
 	pinfo->backlight = devm_of_find_backlight(dev);
 	if (IS_ERR(pinfo->backlight))
