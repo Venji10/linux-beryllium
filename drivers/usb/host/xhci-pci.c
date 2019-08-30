@@ -14,6 +14,7 @@
 #include <linux/acpi.h>
 #include <linux/firmware.h>
 #include <linux/unaligned/access_ok.h>
+#include <linux/debugfs.h>
 
 #include "xhci.h"
 #include "xhci-trace.h"
@@ -496,6 +497,8 @@ static int renesas_fw_verify(struct pci_dev *dev,
 	return 0;
 }
 
+static void debugfs_init(struct pci_dev *pdev);
+
 static int renesas_check_rom_state(struct pci_dev *pdev)
 {
 	const struct renesas_fw_entry *entry;
@@ -519,6 +522,7 @@ static int renesas_check_rom_state(struct pci_dev *pdev)
 		if (version == entry->expected_version) {
 			dev_dbg(&pdev->dev, "Detected valid ROM version..\n");
 			valid_version = true;
+			debugfs_init(pdev);
 		}
 	}
 
@@ -758,12 +762,15 @@ static bool renesas_check_rom(struct pci_dev *pdev)
 	return false;
 }
 
+static int rom_status = -1;
+
 static void renesas_rom_erase(struct pci_dev *pdev)
 {
 	int retval, i;
 	u8 status;
 
 	dev_dbg(&pdev->dev, "Performing ROM Erase...\n");
+	rom_status = 1;
 	retval = pci_write_config_dword(pdev, RENESAS_DATA0,
 					RENESAS_ROM_ERASE_MAGIC);
 	if (retval) {
@@ -802,6 +809,51 @@ static void renesas_rom_erase(struct pci_dev *pdev)
 		dev_dbg(&pdev->dev, "Chip erase timedout: %x\n", status);
 
 	dev_dbg(&pdev->dev, "ROM Erase... Done success\n");
+	rom_status = 4;
+}
+
+static ssize_t debugfs_rom_erase_write(struct file *file,
+				       const char __user *buf,
+				       size_t count, loff_t *ppos)
+{
+	struct pci_dev *pdev = file->private_data;
+	int value, ret;
+
+	ret = kstrtos32_from_user(buf, count, 16, &value);
+	if (ret)
+		return ret;
+
+	if (value == 4)
+		renesas_rom_erase(pdev);
+
+	return count;
+}
+
+static ssize_t debugfs_rom_erase_read(struct file *filp, char __user *buf,
+				      size_t count, loff_t *f_pos)
+{
+	return simple_read_from_buffer(buf, count, f_pos,
+			&rom_status, sizeof(rom_status));
+}
+
+static const struct file_operations rom_erase_ops = {
+	.open = simple_open,
+	.read = debugfs_rom_erase_read,
+	.write = debugfs_rom_erase_write,
+};
+
+static struct dentry *debugfs_root;
+
+static void debugfs_init(struct pci_dev *pdev)
+{
+	debugfs_root = debugfs_create_dir("renesas-usb", NULL);
+
+	debugfs_create_file("rom_erase", 0600, debugfs_root, pdev, &rom_erase_ops);
+}
+
+static void debugfs_exit(void)
+{
+	debugfs_remove_recursive(debugfs_root);
 }
 
 static bool renesas_download_rom(struct pci_dev *pdev,
@@ -1307,6 +1359,8 @@ put_runtime_pm:
 static void xhci_pci_remove(struct pci_dev *dev)
 {
 	struct xhci_hcd *xhci;
+
+	debugfs_exit();
 
 	if (renesas_fw_alive_check(dev)) {
 		/*
