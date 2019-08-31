@@ -677,7 +677,7 @@
 		reg = <0>;
 		vddi-supply = <&vreg_l14a_1p88>;
 		vpnl-supply = <&vreg_l28a_3p0>;
-//		lab-supply = <&lab_regulator>;
+		lab-supply = <&lab_regulator>;
 
 		reset-gpios = <&tlmm 6 GPIO_ACTIVE_HIGH>;
 
