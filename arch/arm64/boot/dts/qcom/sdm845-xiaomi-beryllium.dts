@@ -291,7 +291,7 @@ reserved-memory {
 		};
 
 		vreg_l25a_3p3: ldo25 {
-			regulator-min-microvolt = <3300000>;
+			regulator-min-microvolt = <3000000>; //3300000 before
 			regulator-max-microvolt = <3312000>;
 			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
 		};
