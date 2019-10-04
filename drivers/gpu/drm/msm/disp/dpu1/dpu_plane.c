@@ -911,8 +911,8 @@ static int dpu_plane_atomic_check(struct drm_plane *plane,
 
 	/* check decimated source width */
 	} else if (drm_rect_width(&src) > max_linewidth) {
-		DPU_ERROR_PLANE(pdpu, "invalid src " DRM_RECT_FMT " line:%u\n",
-				DRM_RECT_ARG(&src), max_linewidth);
+//		DPU_ERROR_PLANE(pdpu, "invalid src " DRM_RECT_FMT " line:%u\n",
+//				DRM_RECT_ARG(&src), max_linewidth);
 		return -E2BIG;
 	}
 
