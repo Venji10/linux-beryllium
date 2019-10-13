@@ -260,8 +260,8 @@ reserved-memory {
 		};
 
 		vreg_l20a_2p95: ldo20 {
-			regulator-min-microvolt = <2704000>;
-			regulator-max-microvolt = <2960000>;
+			regulator-min-microvolt = <2960000>;
+			regulator-max-microvolt = <2968000>;
 			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
 		};
 
@@ -411,19 +411,19 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
 };
 
 &ufs_mem_hc {
-        status = "okay";
+	status = "okay";
 
-        device-reset-gpios = <&tlmm 150 GPIO_ACTIVE_LOW>;
+	device-reset-gpios = <&tlmm 150 GPIO_ACTIVE_LOW>;
 
-        vcc-supply = <&vreg_l20a_2p95>;
-        vcc-max-microamp = <800000>;
+	vcc-supply = <&vreg_l20a_2p95>;
+	vcc-max-microamp = <800000>;
 };
 
 &ufs_mem_phy {
-        status = "okay";
-	resets = <&ufs_mem_hc 0>;
-        vdda-phy-supply = <&vreg_l1a_0p875>;
-        vdda-pll-supply = <&vreg_l26a_1p2>;
+	status = "okay";
+
+	vdda-phy-supply = <&vreg_l1a_0p875>;
+	vdda-pll-supply = <&vreg_l26a_1p2>;
 };
 
 &usb_1 {
