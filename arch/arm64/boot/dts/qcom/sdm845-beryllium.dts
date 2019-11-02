@@ -769,7 +769,6 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
 		};
 
 };
-
 &dsi0 {
 
         compatible = "qcom,mdss-dsi-ctrl";
@@ -798,15 +797,16 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
                                 remote-endpoint = <&dsi0_out>;
                         };
                 };
+		};
 
 	ports {
 	port@1 {
 		endpoint {
 			remote-endpoint = <&panel_in>;
 			data-lanes = <0 1 2 3>;
-			}
-		}
-	}
+			};
+		};
+	};
 
         };
 
