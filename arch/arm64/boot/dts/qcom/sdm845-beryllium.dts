@@ -542,17 +542,17 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
 	vdd-3.3-ch0-supply = <&vreg_l25a_3p3>;
 };
 
-mdss: mdss@ae00000 {
+&mdss {
 	compatible = "qcom,sdm845-mdss";
 	status = "okay";
 
 }
 
-mdss_mdp: mdp@ae01000 {
+&mdss_mdp {
 	status = "okay";
 }
 
-dsi0: dsi@ae94000 {
+&dsi0 {
 
 	compatible = "qcom,mdss-dsi-ctrl";
 	status = "okay";
@@ -581,7 +581,7 @@ dsi0: dsi@ae94000 {
 
 };
 
-dsi0_phy: dsi-phy@ae94400 {
+&dsi0_phy {
 	compatible = "qcom,dsi-phy-10nm";
 	status = "okay";
 	vdds-supply = <&vdda_mipi_dsi0_pll>;
