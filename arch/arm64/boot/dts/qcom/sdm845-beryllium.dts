@@ -809,10 +809,6 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
 	vdds-supply = <&vdda_mipi_dsi0_pll>;
 };
 
-&vreg_l28a_3p0{
-        qcom,init-voltage = <3000000>;
-};
-
 &mdss {
 	status = "okay";
 };
