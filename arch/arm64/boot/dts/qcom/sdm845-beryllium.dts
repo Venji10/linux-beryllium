@@ -70,6 +70,7 @@ pmi8998_wled: pmi8998_wled {
         qcom,cabc;
         qcom,switching-freq = <600>;
 	};
+
 };
 
 &adsp_pas {
@@ -356,6 +357,32 @@ pmi8998_wled: pmi8998_wled {
 		};
 	};
 
+        pmi8998_lsid1: pmic@3 {
+                qcom-labibb-regulator {
+                        compatible = "qcom,lab-ibb-regulator";
+                        #address-cells = <1>;
+                        #size-cells = <0>;
+
+                        lab_regulator: qcom,lab@de00 {
+
+                                regulator-name = "lab_reg";
+				regulator-min-microvolt = <5500000>;
+				regulator-max-microvolt = <5500000>;
+
+                        };
+
+                        ibb_regulator: qcom,ibb@dc00 {
+
+                                regulator-name = "ibb_reg";
+				regulator-min-microvolt = <5500000>;
+				regulator-max-microvolt = <55000000>;
+				
+
+                        };
+
+                };
+        };
+
 	pm8005-rpmh-regulators {
 		compatible = "qcom,pm8005-rpmh-regulators";
 		qcom,pmic-id = "c";
@@ -534,7 +561,11 @@ dsi0: dsi@ae94000 {
 
 	panel: panel@0 {
 		status = "okay";
-		power-supply = <&vreg_l17a_1p3????????????????????????????????????????????????????????>;
+
+		vddi-supply = <&vreg_l14a_1p88>;
+                vpnl-supply = <&vreg_l28a_3p0>;
+                lab-supply = <&lab_regulator>;
+
 		compatible = "ebbg,fhd-ft8719"
 		backlight = <&pmi8998_wled>;
 		qcom,platform-reset-gpio = <&tlmm 6 0>;
