@@ -546,10 +546,9 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
 	compatible = "qcom,sdm845-mdss";
 	status = "okay";
 
-}
-
-&mdss_mdp {
-	status = "okay";
+	&mdss_mdp {
+		status = "okay";
+	}
 }
 
 &dsi0 {
@@ -561,12 +560,21 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
 
 	panel: panel@0 {
 		status = "okay";
+		compatible = "mdss,ebbg_fhd_ft8719";
 
-		vddi-supply = <&vreg_l14a_1p88>;
-                vpnl-supply = <&vreg_l28a_3p0>;
+		vddio-supply = <&vreg_l14a_1p88>;
                 lab-supply = <&lab_regulator>;
+		ibb-supply = <&ibb_regulator>;
 
-		compatible = "ebbg,fhd-ft8719"
+		clocks = <&mdss_dsi0_pll BYTECLK_MUX_0_CLK>,
+                        <&mdss_dsi0_pll PCLK_MUX_0_CLK>;
+                clock-names = "mux_byte_clk", "mux_pixel_clk";
+
+                pinctrl-names = "panel_active", "panel_suspend";
+                pinctrl-0 = <&sde_dsi_active>;
+                pinctrl-1 = <&sde_dsi_suspend>;
+
+
 		backlight = <&pmi8998_wled>;
 		qcom,platform-reset-gpio = <&tlmm 6 0>;
 

@@ -4,9 +4,16 @@
 #include <drm/drm_mipi_dsi.h>
 #include <drm/drm_modes.h>
 #include <drm/drm_panel.h>
+#include <drm/drm_device.h>
+#include <drm/drm_mipi_dsi.h>
+
 #include <linux/backlight.h>
 #include <linux/delay.h>
+
 #include <linux/gpio/consumer.h>
+#include <linux/pinctrl/consumer.h>
+#include <linux/regulator/consumer.h>
+
 #include <linux/module.h>
 #include <linux/of.h>
 
@@ -19,7 +26,23 @@ struct ebbg_fhd_ft8719 {
 	bool prepared;
 	bool enabled;
 };
+static const char * const regulator_names[] = {
+	"vddio",
+	"ibb",
+	"lab",
+};
 
+static unsigned long const regulator_enable_loads[] = {
+	62000,
+	100000,
+	100000,
+};
+
+static unsigned long const regulator_disable_loads[] = {
+	80,
+	100,
+	100,
+};
 static inline struct ebbg_fhd_ft8719 *to_ebbg_fhd_ft8719(struct drm_panel *panel)
 {
 	return container_of(panel, struct ebbg_fhd_ft8719, panel);
