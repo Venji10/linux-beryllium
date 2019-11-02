@@ -785,10 +785,6 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
                 lab-supply = <&lab_regulator>;
                 ibb-supply = <&ibb_regulator>;
 
-                clocks = <&mdss_dsi0_pll BYTECLK_MUX_0_CLK>,
-                        <&mdss_dsi0_pll PCLK_MUX_0_CLK>;
-                clock-names = "mux_byte_clk", "mux_pixel_clk";
-
                 pinctrl-names = "panel_active", "panel_suspend";
                 pinctrl-0 = <&sde_dsi_active>;
                 pinctrl-1 = <&sde_dsi_suspend>;
@@ -802,6 +798,16 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
                                 remote-endpoint = <&dsi0_out>;
                         };
                 };
+
+	ports {
+	port@1 {
+		endpoint {
+			remote-endpoint = <&panel_in>;
+			data-lanes = <0 1 2 3>;
+			}
+		}
+	}
+
         };
 
 &dsi0_phy {
