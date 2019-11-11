@@ -37,10 +37,10 @@ static char *const ce_name[] = {
 };
 
 static struct ath10k_vreg_info vreg_cfg[] = {
-	{NULL, "vdd-0.8-cx-mx", 800000, 850000, 0, 0, false},
+	{NULL, "vdd-0.8-cx-mx", 752000, 752000, 0, 0, false},
 	{NULL, "vdd-1.8-xo", 1800000, 1850000, 0, 0, false},
 	{NULL, "vdd-1.3-rfa", 1300000, 1350000, 0, 0, false},
-	{NULL, "vdd-3.3-ch0", 3300000, 3350000, 0, 0, false},
+	{NULL, "vdd-3.3-ch0", 3104000, 3312000, 0, 0, false},
 };
 
 static struct ath10k_clk_info clk_cfg[] = {
@@ -57,7 +57,7 @@ static void ath10k_snoc_pktlog_rx_cb(struct ath10k_ce_pipe *ce_state);
 static const struct ath10k_snoc_drv_priv drv_priv = {
 	.hw_rev = ATH10K_HW_WCN3990,
 	.dma_mask = DMA_BIT_MASK(35),
-	.msa_size = 0x100000,
+	.msa_size = 0x180000,
 };
 
 #define WCN3990_SRC_WR_IDX_OFFSET 0x3C
