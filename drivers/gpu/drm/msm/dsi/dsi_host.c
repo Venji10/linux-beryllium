@@ -221,6 +221,8 @@ static const struct msm_dsi_cfg_handler *dsi_get_config(
 		goto put_gdsc;
 	}
 
+	clk_disable(ahb_clk);
+
 	ret = clk_prepare_enable(ahb_clk);
 	if (ret) {
 		pr_err("%s: unable to enable ahb_clk\n", __func__);
@@ -1817,6 +1819,31 @@ static int dsi_host_get_id(struct msm_dsi_host *msm_host)
 	}
 
 	return -EINVAL;
+}
+
+void msm_dsi_host_post_init(struct msm_dsi *msm_dsi)
+{
+	struct msm_dsi_host *msm_host = to_msm_dsi_host(msm_dsi->host);
+	const struct msm_dsi_cfg_handler *cfg_hnd = msm_host->cfg_hnd;
+	struct platform_device *pdev = msm_dsi->pdev;
+	int ret;
+
+	if (!msm_dsi->enabled_at_boot)
+		return;
+
+	pm_runtime_enable(&pdev->dev);
+	pm_runtime_get_sync(&pdev->dev);
+
+	/*
+	 * Do an extra enable/disable sequence initially to
+	 * ensure the clocks are actually off, if left enabled
+	 * by the bootloader..
+	 */
+	ret = cfg_hnd->ops->link_clk_enable(msm_host);
+	if (!ret)
+		cfg_hnd->ops->link_clk_disable(msm_host);
+
+	pm_runtime_put_sync(&pdev->dev);
 }
 
 int msm_dsi_host_init(struct msm_dsi *msm_dsi)

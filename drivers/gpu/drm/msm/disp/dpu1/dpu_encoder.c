@@ -56,7 +56,7 @@
 
 #define IDLE_SHORT_TIMEOUT	1
 
-#define MAX_VDISPLAY_SPLIT 1080
+#define MAX_HDISPLAY_SPLIT 1080
 
 /* timeout in frames waiting for frame done */
 #define DPU_ENCODER_FRAME_DONE_TIMEOUT_FRAMES 5
@@ -533,7 +533,7 @@ static struct msm_display_topology dpu_encoder_get_topology(
 			intf_count++;
 
 	/* User split topology for width > 1080 */
-	topology.num_lm = (mode->vdisplay > MAX_VDISPLAY_SPLIT) ? 2 : 1;
+	topology.num_lm = (mode->hdisplay > MAX_HDISPLAY_SPLIT) ? 2 : 1;
 	topology.num_enc = 0;
 	topology.num_intf = intf_count;
 
