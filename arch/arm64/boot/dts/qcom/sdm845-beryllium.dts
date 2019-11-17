@@ -235,6 +235,8 @@ pmi8998_wled: pmi8998_wled {
 		};
 
 		vreg_l14a_1p88: ldo14 {
+			regulator-boot-on;
+			regulator-always-on;
 			regulator-min-microvolt = <1800000>;
 			regulator-max-microvolt = <1800000>;
 			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
@@ -364,6 +366,8 @@ pmi8998_wled: pmi8998_wled {
                         #size-cells = <0>;
 
                         lab_regulator: qcom,lab@de00 {
+				regulator-boot-on;
+				regulator-always-on;
 
                                 regulator-name = "lab_reg";
 				regulator-min-microvolt = <5500000>;
@@ -372,6 +376,8 @@ pmi8998_wled: pmi8998_wled {
                         };
 
                         ibb_regulator: qcom,ibb@dc00 {
+                                regulator-boot-on;
+                                regulator-always-on;
 
                                 regulator-name = "ibb_reg";
 				regulator-min-microvolt = <5500000>;
@@ -776,19 +782,13 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
 
         panel: panel@0 {
                 status = "okay";
-                compatible = "mdss,ebbg_fhd_ft8719";
+                compatible = "ebbg,fhd_ft8719";
 
                 vddio-supply = <&vreg_l14a_1p88>;
                 lab-supply = <&lab_regulator>;
                 ibb-supply = <&ibb_regulator>;
 
-                pinctrl-names = "panel_active", "panel_suspend";
-                pinctrl-0 = <&sde_dsi_active>;
-                pinctrl-1 = <&sde_dsi_suspend>;
-
-
                 backlight = <&pmi8998_wled>;
-                qcom,platform-reset-gpio = <&tlmm 6 0>;
 
                 port {
                         panel_in: endpoint {
