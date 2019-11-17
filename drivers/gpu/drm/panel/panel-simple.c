@@ -3074,36 +3074,6 @@ static const struct panel_desc arm_rtsm = {
 	.bus_format = MEDIA_BUS_FMT_RGB888_1X24,
 };
 
-static const struct drm_display_mode ebbg_fhd_ft8719_mode = {
-        .clock = (1080 + 28 + 4 + 16) * (2246 + 120 + 4 + 12) * 60 / 1000,
-        .hdisplay = 1080,
-        .hsync_start = 1080 + 28,
-        .hsync_end = 1080 + 28 + 4,
-        .htotal = 1080 + 28 + 4 + 16,
-        .vdisplay = 2246,
-        .vsync_start = 2246 + 120,
-        .vsync_end = 2246 + 120 + 4,
-        .vtotal = 2246 + 120 + 4 + 12,
-        .vrefresh = 60,
-        .width_mm = 68,
-        .height_mm = 141,
-};
-
-static const struct panel_desc_dsi ebbg_fhd_ft8719 = {
-        .desc = {
-                .modes = &ebbg_fhd_ft8719_mode,
-                .num_modes = 1,
-                .bpc = 8,
-                .size = {
-                        .width = 68,
-                        .height = 141,
-                },
-        },
-        .flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_BURST | MIPI_DSI_MODE_VIDEO_HSE | MIPI_DSI_CLOCK_NON_CONTINUOUS,
-        .format = MIPI_DSI_FMT_RGB888,
-        .lanes = 4,
-};
-
 static const struct of_device_id platform_of_match[] = {
 	{
 		.compatible = "ampire,am-480272h3tmqw-t01h",
@@ -3192,9 +3162,6 @@ static const struct of_device_id platform_of_match[] = {
 	}, {
 		.compatible = "dlc,dlc1010gig",
 		.data = &dlc_dlc1010gig,
-	}, {
-                .compatible = "ebbg,fhd_ft8719",
-                .data = &ebbg_fhd_ft8719,
         }, {
 		.compatible = "edt,et035012dm6",
 		.data = &edt_et035012dm6,
@@ -3535,6 +3502,39 @@ static const struct panel_desc_dsi boe_tv080wum_nl0 = {
 	.lanes = 4,
 };
 
+static const struct drm_display_mode ebbg_fhd_ft8719_mode = {
+        .clock = (1080 + 28 + 4 + 16) * (2246 + 120 + 4 + 12) * 60 / 1000,
+        .hdisplay = 1080,
+        .hsync_start = 1080 + 28,
+        .hsync_end = 1080 + 28 + 4,
+        .htotal = 1080 + 28 + 4 + 16,
+        .vdisplay = 2246,
+        .vsync_start = 2246 + 120,
+        .vsync_end = 2246 + 120 + 4,
+        .vtotal = 2246 + 120 + 4 + 12,
+        .vrefresh = 60,
+        .width_mm = 68,
+        .height_mm = 141,
+};
+
+static const struct panel_desc_dsi ebbg_fhd_ft8719 = {
+          .desc = {
+                .modes = &ebbg_fhd_ft8719_mode,
+                  .num_modes = 1,
+                  .bpc = 8,
+                  .size = {
+                         .width = 68,
+                         .height = 141,
+                  },
+        },
+        .flags = MIPI_DSI_MODE_VIDEO |
+                 MIPI_DSI_MODE_VIDEO_BURST |
+                 MIPI_DSI_MODE_VIDEO_HSE |
+                 MIPI_DSI_CLOCK_NON_CONTINUOUS,
+        .format = MIPI_DSI_FMT_RGB888,
+        .lanes = 4,
+};
+
 static const struct drm_display_mode lg_ld070wx3_sl01_mode = {
 	.clock = 71000,
 	.hdisplay = 800,
@@ -3686,6 +3686,9 @@ static const struct of_device_id dsi_of_match[] = {
 	}, {
 		.compatible = "boe,tv080wum-nl0",
 		.data = &boe_tv080wum_nl0
+        }, {
+                .compatible = "ebbg,fhd_ft8719",
+                .data = &ebbg_fhd_ft8719,
 	}, {
 		.compatible = "lg,ld070wx3-sl01",
 		.data = &lg_ld070wx3_sl01

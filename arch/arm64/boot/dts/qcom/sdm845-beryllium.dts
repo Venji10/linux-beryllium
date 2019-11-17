@@ -783,7 +783,6 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
                 ibb-supply = <&ibb_regulator>;
 
                 backlight = <&pmi8998_wled>;
-                qcom,platform-reset-gpio = <&tlmm 6 0>;
 
                 port {
                         panel_in: endpoint {
