@@ -328,7 +328,7 @@ static int ebbg_fhd_ft8719_remove(struct mipi_dsi_device *dsi)
 }
 
 static const struct of_device_id ebbg_fhd_ft8719_of_match[] = {
-	{ .compatible = "mdss,ebbg_fhd_ft8719" }, // FIXME
+	{ .compatible = "ebbg,fhd_ft8719" }, // FIXME
 	{ }
 };
 MODULE_DEVICE_TABLE(of, ebbg_fhd_ft8719_of_match);

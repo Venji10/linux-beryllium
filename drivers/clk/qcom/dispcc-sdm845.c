@@ -296,7 +296,7 @@ static struct clk_branch disp_cc_mdss_byte0_clk = {
 				"disp_cc_mdss_byte0_clk_src",
 			},
 			.num_parents = 1,
-			.flags = CLK_SET_RATE_PARENT | CLK_INHERIT_BOOTLOADER,
+			.flags = CLK_SET_RATE_PARENT | CLK_INHERIT_BOOTLOADER | CLK_GET_RATE_NOCACHE,
 			.ops = &clk_branch2_ops,
 		},
 	},

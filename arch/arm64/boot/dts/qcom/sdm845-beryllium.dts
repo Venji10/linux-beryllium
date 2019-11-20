@@ -24,6 +24,28 @@
 		stdout-path = "serial0:115200n8";
 	};
 
+
+	chosen {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		stdout-path = "display0";
+
+		/* hack: use framebuffer setup by bootloader.
+		 * the address is taken from the bootloader config (strings xbl.img | grep "Display Reserved")
+		 * it's wrong (it's closer to 0x9d500000, so the top is cut off), but I spent an hour
+		 * trying to find the right address and give up. It's just a temp hack anyways.
+		 */
+		framebuffer0: framebuffer@9d400000 {
+			compatible = "simple-framebuffer";
+			reg = <0 0x9D400000 0 0x02400000>;
+			width = <1080>;
+			height = <2246>;
+			status = "disabled";
+		};
+	};
+
 	vph_pwr: vph-pwr-regulator {
 		compatible = "regulator-fixed";
 		regulator-name = "vph_pwr";
