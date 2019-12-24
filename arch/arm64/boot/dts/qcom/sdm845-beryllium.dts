@@ -357,7 +357,9 @@
 &gcc {
 	protected-clocks = <GCC_QSPI_CORE_CLK>,
 			   <GCC_QSPI_CORE_CLK_SRC>,
-			   <GCC_QSPI_CNOC_PERIPH_AHB_CLK>;
+			   <GCC_QSPI_CNOC_PERIPH_AHB_CLK>,
+			   <GCC_LPASS_Q6_AXI_CLK>,
+			   <GCC_LPASS_SWAY_CLK>;
 };
 
 &pm8998_gpio {
@@ -391,14 +393,24 @@
 &sdhc_2 {
 	status = "okay";
 
-	pinctrl-names = "default";
-	pinctrl-0 = <&sdc2_default_state &sdc2_card_det_n>;
-
 	vmmc-supply = <&vreg_l21a_2p95>;
 	vqmmc-supply = <&vreg_l13a_2p95>;
 
-	bus-width = <4>;
-	cd-gpios = <&tlmm 126 GPIO_ACTIVE_LOW>;
+pinctrl-names = "active", "sleep", "ds_400KHz",
+                        "ds_50MHz", "ds_100MHz", "ds_200MHz";
+        pinctrl-0 = <&sdc2_clk_on  &sdc2_cmd_on &sdc2_data_on &storage_cd>;
+        pinctrl-1 = <&sdc2_clk_off &sdc2_cmd_off &sdc2_data_off &storage_cd>;
+        pinctrl-2 = <&sdc2_clk_ds_400KHz
+                        &sdc2_cmd_ds_400KHz &sdc2_data_ds_400KHz>;
+        pinctrl-3 = <&sdc2_clk_ds_50MHz
+                        &sdc2_cmd_ds_50MHz &sdc2_data_ds_50MHz>;
+        pinctrl-4 = <&sdc2_clk_ds_100MHz
+                        &sdc2_cmd_ds_100MHz &sdc2_data_ds_100MHz>;
+        pinctrl-5 = <&sdc2_clk_ds_200MHz
+                        &sdc2_cmd_ds_200MHz &sdc2_data_ds_200MHz>;
+
+        cd-gpios = <&tlmm 126 GPIO_ACTIVE_HIGH>;
+
 };
 
 &tlmm {
@@ -467,7 +479,13 @@
 };
 
 &usb_1_dwc3 {
+	/* Until we have Type C hooked up we'll force this as host. */
+	/* Fixme: Pixel 3 XL: set to peripheral since we only have one port */
 	dr_mode = "peripheral";
+	maximum-speed = "high-speed";
+	/* Crosshatch hack: disable USB-3 phy for now. I don't have this enabled in Kconfig yet. */
+	phys = <&usb_1_hsphy>;
+	phy-names = "usb2-phy";
 };
 
 &usb_1_hsphy {
@@ -490,20 +508,30 @@
 	vdda-pll-supply = <&vreg_l1a_0p875>;
 };
 
+/*
+
 &usb_2 {
 	status = "okay";
 };
 
 &usb_2_dwc3 {
-	dr_mode = "host";
+*/
+	/*
+	 * Though the USB block on SDM845 can support host, there's no vbus
+	 * signal for this port on MTP.  Thus (unless you have a non-compliant
+	 * hub that works without vbus) the only sensible thing is to force
+	 * peripheral mode.
+	 */
+/*
+	dr_mode = "peripheral";
 };
 
 &usb_2_hsphy {
 	status = "okay";
 
-	vdd-supply = <&vreg_l1a_0p875>;
-	vdda-pll-supply = <&vreg_l12a_1p8>;
-	vdda-phy-dpdm-supply = <&vreg_l24a_3p075>;
+	vdd-supply = <&vdda_usb2_ss_core>;
+	vdda-pll-supply = <&vdda_qusb_hs0_1p8>;
+	vdda-phy-dpdm-supply = <&vdda_qusb_hs0_3p1>;
 
 	qcom,imp-res-offset-value = <8>;
 	qcom,hstx-trim-value = <QUSB2_V2_HSTX_TRIM_22_8_MA>;
@@ -512,9 +540,10 @@
 &usb_2_qmpphy {
 	status = "okay";
 
-	vdda-phy-supply = <&vreg_l26a_1p2>;
-	vdda-pll-supply = <&vreg_l1a_0p875>;
+	vdda-phy-supply = <&vdda_usb2_ss_1p2>;
+	vdda-pll-supply = <&vdda_usb2_ss_core>;
 };
+
 
 &ufs_mem_hc {
 	status = "okay";
@@ -580,6 +609,208 @@
 	};
 };
 
+&tlmm {
+	gpio-reserved-ranges = <0 4>, <81 4>;
+
+	sdc2_clk: sdc2-clk {
+		pinconf {
+			pins = "sdc2_clk";
+			bias-disable;
+
+			/*
+			 * It seems that mmc_test reports errors if drive
+			 * strength is not 16 on clk, cmd, and data pins.
+			 */
+			drive-strength = <16>;
+		};
+	};
+
+	sdc2_cmd: sdc2-cmd {
+		pinconf {
+			pins = "sdc2_cmd";
+			bias-pull-up;
+			drive-strength = <16>;
+		};
+	};
+
+	sdc2_data: sdc2-data {
+		pinconf {
+			pins = "sdc2_data";
+			bias-pull-up;
+			drive-strength = <16>;
+		};
+	};
+
+	sd_card_det_n: sd-card-det-n {
+		pinmux {
+			pins = "gpio126";
+			function = "gpio";
+		};
+
+		pinconf {
+			pins = "gpio126";
+			bias-pull-up;
+		};
+	};
+		storage_cd: storage_cd {
+			mux {
+				pins = "gpio126";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio126";
+				bias-pull-up;           /* pull up */
+				drive-strength = <2>;   /* 2 MA */
+			};
+		};
+
+		sdc2_clk_on: sdc2_clk_on {
+			config {
+				pins = "sdc2_clk";
+				bias-disable;		/* NO pull */
+				drive-strength = <16>;	/* 16 MA */
+			};
+		};
+
+		sdc2_clk_off: sdc2_clk_off {
+			config {
+				pins = "sdc2_clk";
+				bias-disable;		/* NO pull */
+				drive-strength = <2>;	/* 2 MA */
+			};
+		};
+
+		sdc2_clk_ds_400KHz: sdc2_clk_ds_400KHz {
+			config {
+				pins = "sdc2_clk";
+				bias-disable;		/* NO pull */
+				drive-strength = <16>;	/* 16 MA */
+			};
+		};
+
+		sdc2_clk_ds_50MHz: sdc2_clk_ds_50MHz {
+			config {
+				pins = "sdc2_clk";
+				bias-disable;		/* NO pull */
+				drive-strength = <16>;	/* 16 MA */
+			};
+		};
+
+		sdc2_clk_ds_100MHz: sdc2_clk_ds_100MHz {
+			config {
+				pins = "sdc2_clk";
+				bias-disable;		/* NO pull */
+				drive-strength = <16>;	/* 16 MA */
+			};
+		};
+
+		sdc2_clk_ds_200MHz: sdc2_clk_ds_200MHz {
+			config {
+				pins = "sdc2_clk";
+				bias-disable;		/* NO pull */
+				drive-strength = <16>;	/* 16 MA */
+			};
+		};
+
+		sdc2_cmd_on: sdc2_cmd_on {
+			config {
+				pins = "sdc2_cmd";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+		sdc2_cmd_off: sdc2_cmd_off {
+			config {
+				pins = "sdc2_cmd";
+				bias-pull-up;		/* pull up */
+				drive-strength = <2>;	/* 2 MA */
+			};
+		};
+
+		sdc2_cmd_ds_400KHz: sdc2_cmd_ds_400KHz {
+			config {
+				pins = "sdc2_cmd";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+		sdc2_cmd_ds_50MHz: sdc2_cmd_ds_50MHz {
+			config {
+				pins = "sdc2_cmd";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+		sdc2_cmd_ds_100MHz: sdc2_cmd_ds_100MHz {
+			config {
+				pins = "sdc2_cmd";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+		sdc2_cmd_ds_200MHz: sdc2_cmd_ds_200MHz {
+			config {
+				pins = "sdc2_cmd";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+		sdc2_data_on: sdc2_data_on {
+			config {
+				pins = "sdc2_data";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+		sdc2_data_off: sdc2_data_off {
+			config {
+				pins = "sdc2_data";
+				bias-pull-up;		/* pull up */
+				drive-strength = <2>;	/* 2 MA */
+			};
+		};
+
+		sdc2_data_ds_400KHz: sdc2_data_ds_400KHz {
+			config {
+				pins = "sdc2_data";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+		sdc2_data_ds_50MHz: sdc2_data_ds_50MHz {
+			config {
+				pins = "sdc2_data";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+		sdc2_data_ds_100MHz: sdc2_data_ds_100MHz {
+			config {
+				pins = "sdc2_data";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+		sdc2_data_ds_200MHz: sdc2_data_ds_200MHz {
+			config {
+				pins = "sdc2_data";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+};
+
 &dsi0 {
 	status = "okay";
 	vdda-supply = <&vdda_mipi_dsi0_1p2>;
@@ -587,14 +818,14 @@
 	ports {
 		port@1 {
 			endpoint {
-				remote-endpoint = <&tianma_nt36672a_in_0>;
+				remote-endpoint = <&ebbg_fhd_ft8719_in_0>;
 				data-lanes = <0 1 2 3>;
 			};
 		};
 	};
 
 	panel@0 {
-		compatible = "tianma,nt36672a";
+		compatible = "ebbg,fhd_ft8719";
 		reg = <0>;
 		vddi0-supply = <&vreg_l14a_1p88>;
 		lab-supply = <&lab_regulator>;
@@ -612,7 +843,7 @@
 
 			port@0 {
 				reg = <0>;
-				tianma_nt36672a_in_0: endpoint {
+				ebbg_fhd_ft8719_in_0: endpoint {
 					remote-endpoint = <&dsi0_out>;
 				};
 			};

@@ -514,7 +514,7 @@ static struct clk_branch disp_cc_mdss_rot_clk = {
 				"disp_cc_mdss_rot_clk_src",
 			},
 			.num_parents = 1,
-			.flags = CLK_SET_RATE_PARENT,
+			.flags = CLK_SET_RATE_PARENT | CLK_INHERIT_BOOTLOADER,
 			.ops = &clk_branch2_ops,
 		},
 	},
