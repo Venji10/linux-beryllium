@@ -818,14 +818,14 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
 	ports {
 		port@1 {
 			endpoint {
-				remote-endpoint = <&ebbg_fhd_ft8719_in_0>;
+				remote-endpoint = <&tianma_nt36672a_in_0>;
 				data-lanes = <0 1 2 3>;
 			};
 		};
 	};
 
 	panel@0 {
-		compatible = "ebbg,fhd_ft8719";
+		compatible = "tianma,nt36672a";
 		reg = <0>;
 		vddi0-supply = <&vreg_l14a_1p88>;
 		lab-supply = <&lab_regulator>;
@@ -843,7 +843,7 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
 
 			port@0 {
 				reg = <0>;
-				ebbg_fhd_ft8719_in_0: endpoint {
+				tianma_nt36672a_in_0: endpoint {
 					remote-endpoint = <&dsi0_out>;
 				};
 			};
