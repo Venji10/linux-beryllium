@@ -1940,10 +1940,10 @@ static ssize_t nvt_selftest_read(struct file *file, char __user *buf, size_t cou
 	if (*pos != 0)
 		return 0;
 	cnt = snprintf(tmp, sizeof(ts->result_type), "%d\n", ts->result_type);
-/*	if (copy_to_user(buf, tmp, strlen(tmp))) {
+	if (copy_to_user(buf, tmp, strlen(tmp))) {
 		return -EFAULT;
 	}
-*/
+
 	*pos += cnt;
 	return cnt;
 }
@@ -1952,12 +1952,12 @@ static ssize_t nvt_selftest_write(struct file *file, const char __user *buf, siz
 {
 	int retval = 0;
 	char tmp[6];
-/*
+
 	if (copy_from_user(tmp, buf, count)) {
 		retval = -EFAULT;
 		goto out;
 	}
-*/
+
 	if (!strncmp("short", tmp, 5)) {
 		retval = nvt_short_test();
 	} else if (!strncmp("open", tmp, 4)) {
