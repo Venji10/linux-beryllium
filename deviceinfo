@@ -1,0 +1,37 @@
+# Reference: <https://postmarketos.org/deviceinfo>
+# Please use double quotes only. You can source this file in shell scripts.
+
+deviceinfo_format_version="0"
+deviceinfo_name="Xiaomi Poco F1"
+deviceinfo_manufacturer="Xiaomi"
+deviceinfo_codename="xiaomi-beryllium"
+deviceinfo_date=""
+deviceinfo_dtb=""
+deviceinfo_modules_initfs="ufs_qcom"
+deviceinfo_arch="aarch64"
+
+# Device related
+deviceinfo_keyboard="false"
+deviceinfo_external_storage="true"
+deviceinfo_screen_width="1080"
+deviceinfo_screen_height="2246"
+deviceinfo_dev_touchscreen=""
+deviceinfo_dev_touchscreen_calibration=""
+deviceinfo_dev_keyboard=""
+
+deviceinfo_no_framebuffer=true
+deviceinfo_rootfs_image_sector_size="512"
+#deviceinfo_flash_sparse=true
+
+# Bootloader related
+deviceinfo_flash_method="fastboot"
+deviceinfo_kernel_cmdline="rcupdate.rcu_expedited=1 console=ttyMSM0,115200n8 earlycon=msm_geni_serial,0xA84000 video=vfb:1080x2246,bpp=32,memsize=3072000 msm_rtb.filter=0x237 ehci-hcd.park=3 lpm_levels.sleep_disabled=1 service_locator.enable=1 swiotlb=2048 buildvariant=userdebug PMOS_NO_OUTPUT_REDIRECT drm.debug=14 clk_ignore_unused"
+deviceinfo_generate_bootimg="true"
+deviceinfo_bootimg_qcdt="false"
+deviceinfo_flash_offset_base="0x00000000"
+deviceinfo_flash_offset_kernel="0x00008000"
+deviceinfo_flash_offset_ramdisk="0x01000000"
+deviceinfo_flash_offset_second="0x00f00000"
+deviceinfo_flash_offset_tags="0x00000100"
+deviceinfo_flash_pagesize="4096"
+
