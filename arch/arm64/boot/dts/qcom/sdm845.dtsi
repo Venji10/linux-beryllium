@@ -1326,6 +1326,11 @@
 			};
 		};
 
+			dma: dma@0xa00000 {
+				status = "disabled";
+			};
+
+
 		pcie0: pci@1c00000 {
 			compatible = "qcom,pcie-sdm845", "snps,dw-pcie";
 			reg = <0 0x01c00000 0 0x2000>,

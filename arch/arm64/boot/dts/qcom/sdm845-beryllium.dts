@@ -285,6 +285,7 @@
 			regulator-max-microvolt = <1800000>;
 			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
 			regulator-boot-on;
+			regualtor-always-on;
                 };
 
 
@@ -331,6 +332,7 @@
 			regulator-max-microvolt = <3008000>;
 			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
 			regulator-boot-on;
+			regulator-always-on;
 		};
 	};
 
@@ -609,9 +611,25 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
 	};
 };
 
+&dma {
+                compatible = "ti,omap-sdma";
+                interrupts = <0 279 0>, <0 280 0>, <0 281 0>, <0 282 0>,
+                             <0 283 0>, <0 284 0>, <0 293 0>, <0 294 0>,
+                             <0 295 0>, <0 296 0>, <0 297 0>, <0 298 0>,
+                             <0 299 0>;
+                dma-channels = <13>;
+                iommus = <&apps_smmu 0x06d6 0x0>;
+                status = "okay";
+
+                #dma-cells = <5>;
+                };
+
 &i2c14 {
 
 	status="okay";
+	dmas = <&dma 0 6 3 64 0>,
+		<&dma 1 6 3 64 0>;
+	dma-names = "tx", "rx";
 
 	novatek@62 {
 		compatible = "novatek,NVT-ts";
@@ -650,78 +668,14 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
 
 };
 
-&spi14 {
+&uart14 {
 
 	status = "okay";
 
 };
 
-
 &tlmm {
-	gpio-reserved-ranges = <0 4>, <81 4>;             
-
-                qupv3_se14_i2c_pins: qupv3_se14_i2c_pins {
-                        qupv3_se14_i2c_active: qupv3_se14_i2c_active {
-                                mux {
-                                        pins = "gpio33", "gpio34";
-                                        function = "qup14";
-                                };
-
-                                config {
-                                        pins = "gpio33", "gpio34";
-                                        drive-strength = <2>;
-                                        bias-disable;
-                                };
-                        };
-
-                        qupv3_se14_i2c_sleep: qupv3_se14_i2c_sleep {
-                                mux {
-                                        pins = "gpio33", "gpio34";
-                                        function = "gpio";
-                                };
-
-                                config {
-                                        pins = "gpio33", "gpio34";
-                                        drive-strength = <2>;
-                                        bias-pull-up;
-                                };
-                        };
-                };
-
-                qupv3_se14_spi_pins: qupv3_se14_spi_pins {
-                        qupv3_se14_spi_active: qupv3_se14_spi_active {
-                                mux {
-                                        pins = "gpio31", "gpio32", "gpio33",
-                                                                "gpio34";
-                                        function = "qup14";
-                                };
-
-                                config {
-                                        pins = "gpio31", "gpio32", "gpio33",
-                                                                "gpio34";
-                                        drive-strength = <6>;
-                                        bias-disable;
-                                };
-                        };
-
-                        qupv3_se14_spi_sleep: qupv3_se14_spi_sleep {
-                                mux {
-                                        pins = "gpio31", "gpio32", "gpio33",
-                                                                "gpio34";
-                                        function = "gpio";
-                                };
-
-                                config {
-                                        pins = "gpio31", "gpio32", "gpio33",
-                                                                "gpio34";
-                                        drive-strength = <6>;
-                                        bias-disable;
-                                };
-                        };
-                };
-
-
-	ts_mux {
+	gpio-reserved-ranges = <0 4>, <81 4>;
 
                 ts_int_active: ts_int_active {
                         mux {
@@ -777,8 +731,6 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
                                 input-enable;
                         };
                 };
-        };
-
 
 	sdc2_clk: sdc2-clk {
 		pinconf {
@@ -1002,8 +954,8 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
 		reset-gpios = <&tlmm 6 GPIO_ACTIVE_HIGH>;
 
 		pinctrl-names = "panel_active", "panel_suspend";
-		pinctrl-0 = <&sde_poco_dsi_active>;
-		pinctrl-1 = <&sde_poco_dsi_suspend>;
+		pinctrl-0 = <&sde_dsi_active>;
+		pinctrl-1 = <&sde_dsi_suspend>;
 
 		ports {
 			#address-cells = <1>;
