@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2010 - 2017 Novatek, Inc.
+ * Copyright (C) 2018 XiaoMi, Inc.
  *
  * $Revision: 21600 $
  * $Date: 2018-01-12 15:21:45 +0800 (週五, 12 一月 2018) $
@@ -71,6 +72,7 @@ static uint8_t reservation_byte;
 /*******************************************************
 Description:
 	Novatek touchscreen change mode function.
+
 return:
 	n.a.
 *******************************************************/
@@ -100,6 +102,7 @@ void nvt_change_mode(uint8_t mode)
 /*******************************************************
 Description:
 	Novatek touchscreen get firmware pipe function.
+
 return:
 	Executive outcomes. 0---pipe 0. 1---pipe 1.
 *******************************************************/
@@ -126,6 +129,7 @@ uint8_t nvt_get_fw_pipe(void)
 /*******************************************************
 Description:
 	Novatek touchscreen read meta data function.
+
 return:
 	n.a.
 *******************************************************/
@@ -232,6 +236,7 @@ void nvt_read_mdata(uint32_t xdata_addr, uint32_t xdata_btn_addr)
 /*******************************************************
 Description:
 	Novatek touchscreen read meta data from IQ to rss function.
+
 return:
 	n.a.
 *******************************************************/
@@ -256,6 +261,7 @@ void nvt_read_mdata_rss(uint32_t xdata_i_addr, uint32_t xdata_q_addr, uint32_t x
 /*******************************************************
 Description:
     Novatek touchscreen get meta data function.
+
 return:
     n.a.
 *******************************************************/
@@ -272,6 +278,7 @@ void nvt_get_mdata(int32_t *buf, uint8_t *m_x_num, uint8_t *m_y_num)
 /*******************************************************
 Description:
 	Novatek touchscreen firmware version show function.
+
 return:
 	Executive outcomes. 0---succeed.
 *******************************************************/
@@ -285,6 +292,7 @@ static int32_t c_fw_version_show(struct seq_file *m, void *v)
 Description:
 	Novatek touchscreen xdata sequence print show
 	function.
+
 return:
 	Executive outcomes. 0---succeed.
 *******************************************************/
@@ -315,6 +323,7 @@ static int32_t c_show(struct seq_file *m, void *v)
 Description:
 	Novatek touchscreen xdata sequence print start
 	function.
+
 return:
 	Executive outcomes. 1---call next function.
 	NULL---not call next function and sequence loop
@@ -329,6 +338,7 @@ static void *c_start(struct seq_file *m, loff_t *pos)
 Description:
 	Novatek touchscreen xdata sequence print next
 	function.
+
 return:
 	Executive outcomes. NULL---no next and call sequence
 	stop function.
@@ -343,6 +353,7 @@ static void *c_next(struct seq_file *m, void *v, loff_t *pos)
 Description:
 	Novatek touchscreen xdata sequence print stop
 	function.
+
 return:
 	n.a.
 *******************************************************/
@@ -369,6 +380,7 @@ const struct seq_operations nvt_seq_ops = {
 Description:
 	Novatek touchscreen /proc/nvt_fw_version open
 	function.
+
 return:
 	n.a.
 *******************************************************/
@@ -407,6 +419,7 @@ static const struct file_operations nvt_fw_version_fops = {
 /*******************************************************
 Description:
 	Novatek touchscreen /proc/nvt_baseline open function.
+
 return:
 	Executive outcomes. 0---succeed.
 *******************************************************/
@@ -422,11 +435,11 @@ static int32_t nvt_baseline_open(struct inode *inode, struct file *file)
 	nvt_esd_check_enable(false);
 #endif /* #if NVT_TOUCH_ESD_PROTECT */
 
-/*	if (nvt_clear_fw_status()) {
+	if (nvt_clear_fw_status()) {
 		mutex_unlock(&ts->lock);
 		return -EAGAIN;
 	}
-*/
+
 	nvt_change_mode(TEST_MODE_2);
 
 	if (nvt_check_fw_status()) {
@@ -466,6 +479,7 @@ static const struct file_operations nvt_baseline_fops = {
 /*******************************************************
 Description:
 	Novatek touchscreen /proc/nvt_raw open function.
+
 return:
 	Executive outcomes. 0---succeed.
 *******************************************************/
@@ -481,11 +495,11 @@ static int32_t nvt_raw_open(struct inode *inode, struct file *file)
 	nvt_esd_check_enable(false);
 #endif /* #if NVT_TOUCH_ESD_PROTECT */
 
-/*	if (nvt_clear_fw_status()) {
+	if (nvt_clear_fw_status()) {
 		mutex_unlock(&ts->lock);
 		return -EAGAIN;
 	}
-*/
+
 	nvt_change_mode(TEST_MODE_2);
 
 	if (nvt_check_fw_status()) {
@@ -532,6 +546,7 @@ static const struct file_operations nvt_raw_fops = {
 /*******************************************************
 Description:
 	Novatek touchscreen /proc/nvt_diff open function.
+
 return:
 	Executive outcomes. 0---succeed. negative---failed.
 *******************************************************/
@@ -547,11 +562,11 @@ static int32_t nvt_diff_open(struct inode *inode, struct file *file)
 	nvt_esd_check_enable(false);
 #endif /* #if NVT_TOUCH_ESD_PROTECT */
 
-/*	if (nvt_clear_fw_status()) {
+	if (nvt_clear_fw_status()) {
 		mutex_unlock(&ts->lock);
 		return -EAGAIN;
 	}
-*/
+
 	nvt_change_mode(TEST_MODE_2);
 
 	if (nvt_check_fw_status()) {
@@ -674,16 +689,16 @@ get_oem_data_retry:
 	nvt_stop_crc_reboot();
 
 	/* Step 1: Initial BootLoader */
-//	ret = Init_BootLoader();
-//	if (ret < 0) {
-//		goto get_oem_data_out;
-//	}
+	ret = Init_BootLoader();
+	if (ret < 0) {
+		goto get_oem_data_out;
+	}
 
 	/* Step 2: Resume PD */
-//	ret = Resume_PD();
-//	if (ret < 0) {
-//		goto get_oem_data_out;
-//	}
+	ret = Resume_PD();
+	if (ret < 0) {
+		goto get_oem_data_out;
+	}
 
 	/* Step 3: Unlock */
 	buf[0] = 0x00;
@@ -888,6 +903,7 @@ end:
 Description:
 	Novatek touchscreen extra function proc. file node
 	initial function.
+
 return:
 	Executive outcomes. 0---succeed. -12---failed.
 *******************************************************/

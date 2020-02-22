@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2010 - 2017 Novatek, Inc.
+ * Copyright (C) 2018 XiaoMi, Inc.
  *
  * $Revision: 21288 $
  * $Date: 2018-01-05 11:38:47 +0800 (週五, 05 一月 2018) $
@@ -95,6 +96,7 @@ void nvt_mp_parse_dt(struct device_node *root, const char *node_compatible);
 /*******************************************************
 Description:
 	Novatek touchscreen allocate buffer for mp selftest.
+
 return:
 	Executive outcomes. 0---succeed. -12---Out of memory
 *******************************************************/
@@ -219,6 +221,7 @@ static int nvt_mp_buffer_init(void)
 /*******************************************************
 Description:
 	Novatek touchscreen self-test criteria print function.
+
 return:
 	n.a.
 *******************************************************/
@@ -322,108 +325,9 @@ static void nvt_print_criteria(void)
 	NVT_LOG("--\n");
 }
 
-static int32_t nvt_save_rawdata_to_csv(int32_t *rawdata, uint8_t x_ch, uint8_t y_ch, const char *file_path, uint32_t offset)
+static int32_t nvt_save_rawdata_to_csv(int32_t *rawdata, uint8_t x_ch,
+	uint8_t y_ch, const char *file_path, uint32_t offset)
 {
-	int32_t x = 0;
-	int32_t y = 0;
-	int32_t cnt = 0;
-	int32_t iArrayIndex = 0;
-	struct file *fp = NULL;
-	char *fbufp = NULL;
-	char *buf = NULL;
-	mm_segment_t org_fs;
-	int32_t write_ret = 0;
-	uint32_t output_len = 0;
-	loff_t pos = 0;
-#if TOUCH_KEY_NUM > 0
-	int32_t k = 0;
-	int32_t keydata_output_offset = 0;
-#endif /* #if TOUCH_KEY_NUM > 0 */
-
-	printk("%s:++\n", __func__);
-	fbufp = (char *)kzalloc(PAGE_SIZE * 2, GFP_KERNEL);
-	if (!fbufp) {
-		NVT_ERR("kzalloc for fbufp failed!\n");
-		return -ENOMEM;
-	}
-	buf = (char *)kzalloc(PAGE_SIZE * 2, GFP_KERNEL);
-	if (!buf) {
-		NVT_ERR("kzalloc for buf failed!\n");
-		return -ENOMEM;
-	}
-
-	for (y = 0; y < y_ch; y++) {
-		cnt = 0;
-		for (x = 0; x < x_ch; x++) {
-			iArrayIndex = y * x_ch + x;
-			sprintf(fbufp + iArrayIndex * 7 + y * 2, "%5d, ", rawdata[iArrayIndex]);
-			cnt += snprintf(buf + cnt, 8, "%5d, ", rawdata[iArrayIndex]);
-		}
-		buf[cnt] = '\0';
-		printk("%s\n", buf);
-		sprintf(fbufp + (iArrayIndex + 1) * 7 + y * 2,"\r\n");
-	}
-#if TOUCH_KEY_NUM > 0
-	keydata_output_offset = y_ch * x_ch * 7 + y_ch * 2;
-	for (k = 0; k < Key_Channel; k++) {
-		iArrayIndex = y_ch * x_ch + k;
-		printk("%5d, ", rawdata[iArrayIndex]);
-		sprintf(fbufp + keydata_output_offset + k * 7, "%5d, ", rawdata[iArrayIndex]);
-	}
-	printk("\n");
-	sprintf(fbufp + y_ch * x_ch * 7 + y_ch * 2 + Key_Channel * 7, "\r\n");
-#endif /* #if TOUCH_KEY_NUM > 0 */
-
-	org_fs = get_fs();
-	set_fs(KERNEL_DS);
-	fp = filp_open(file_path, O_RDWR | O_CREAT, 0644);
-	if (fp == NULL || IS_ERR(fp)) {
-		NVT_ERR("open %s failed\n", file_path);
-		set_fs(org_fs);
-		if (fbufp) {
-			kfree(fbufp);
-			fbufp = NULL;
-		}
-		return -EPERM;
-	}
-
-#if TOUCH_KEY_NUM > 0
-	output_len = y_ch * x_ch * 7 + y_ch * 2 + Key_Channel * 7 + 2;
-#else
-	output_len = y_ch * x_ch * 7 + y_ch * 2;
-#endif /* #if TOUCH_KEY_NUM > 0 */
-	pos = offset;
-	write_ret = vfs_write(fp, (char __user *)fbufp, output_len, &pos);
-	if (write_ret <= 0) {
-		NVT_ERR("write %s failed\n", file_path);
-		set_fs(org_fs);
-		if (fp) {
-			filp_close(fp, NULL);
-			fp = NULL;
-		}
-		if (fbufp) {
-			kfree(fbufp);
-			fbufp = NULL;
-		}
-		return -EPERM;
-	}
-
-	set_fs(org_fs);
-	if (fp) {
-		filp_close(fp, NULL);
-		fp = NULL;
-	}
-	if (fbufp) {
-		kfree(fbufp);
-		fbufp = NULL;
-	}
-	if (buf) {
-		kfree(buf);
-		buf = NULL;
-	}
-
-	printk("%s:--\n", __func__);
-
 	return 0;
 }
 
@@ -679,10 +583,10 @@ static int32_t nvt_read_fw_noise(int32_t *xdata)
 	NVT_LOG("++\n");
 
 	/*---Enter Test Mode---*/
-/*	if (nvt_clear_fw_status()) {
+	if (nvt_clear_fw_status()) {
 		return -EAGAIN;
 	}
-*/
+
 	frame_num = PS_Config_Diff_Test_Frame / 10;
 	if (frame_num <= 0)
 		frame_num = 1;
@@ -813,10 +717,10 @@ static int32_t nvt_read_fw_open(int32_t *xdata)
 	NVT_LOG("++\n");
 
 	/*---Enter Test Mode---*/
-/*	if (nvt_clear_fw_status()) {
+	if (nvt_clear_fw_status()) {
 		return -EAGAIN;
 	}
-*/
+
 	nvt_enable_open_test();
 
 	if (nvt_polling_hand_shake_status()) {
@@ -916,10 +820,10 @@ static int32_t nvt_read_fw_short(int32_t *xdata)
 	NVT_LOG("++\n");
 
 	/*---Enter Test Mode---*/
-/*	if (nvt_clear_fw_status()) {
+	if (nvt_clear_fw_status()) {
 		return -EAGAIN;
 	}
-*/
+
 	nvt_enable_short_test();
 
 	if (nvt_polling_hand_shake_status()) {
@@ -1072,6 +976,7 @@ static int32_t nvt_read_fw_short(int32_t *xdata)
 /*******************************************************
 Description:
 	Novatek touchscreen raw data test for each single point function.
+
 return:
 	Executive outcomes. 0---passed. negative---failed.
 *******************************************************/
@@ -1141,6 +1046,7 @@ static int32_t RawDataTest_SinglePoint_Sub(int32_t rawdata[], uint8_t RecordResu
 /*******************************************************
 Description:
 	Novatek touchscreen print self-test result function.
+
 return:
 	n.a.
 *******************************************************/
@@ -1203,6 +1109,7 @@ void print_selftest_result(struct seq_file *m, int32_t TestResult, uint8_t Recor
 Description:
 	Novatek touchscreen self-test sequence print show
 	function.
+
 return:
 	Executive outcomes. 0---succeed.
 *******************************************************/
@@ -1287,6 +1194,7 @@ static int32_t c_show_selftest(struct seq_file *m, void *v)
 Description:
 	Novatek touchscreen self-test sequence print start
 	function.
+
 return:
 	Executive outcomes. 1---call next function.
 	NULL---not call next function and sequence loop
@@ -1301,6 +1209,7 @@ static void *c_start(struct seq_file *m, loff_t *pos)
 Description:
 	Novatek touchscreen self-test sequence print next
 	function.
+
 return:
 	Executive outcomes. NULL---no next and call sequence
 	stop function.
@@ -1315,6 +1224,7 @@ static void *c_next(struct seq_file *m, void *v, loff_t *pos)
 Description:
 	Novatek touchscreen self-test sequence print stop
 	function.
+
 return:
 	n.a.
 *******************************************************/
@@ -1333,6 +1243,7 @@ const struct seq_operations nvt_selftest_seq_ops = {
 /*******************************************************
 Description:
 	Novatek touchscreen /proc/nvt_selftest open function.
+
 return:
 	Executive outcomes. 0---succeed. negative---failed.
 *******************************************************/
@@ -1404,12 +1315,12 @@ static int32_t nvt_selftest_open(struct inode *inode, struct file *file)
 	msleep(100);
 
 	/*---Enter Test Mode---*/
-/*	if (nvt_clear_fw_status()) {
+	if (nvt_clear_fw_status()) {
 		mutex_unlock(&ts->lock);
 		NVT_ERR("clear fw status failed!\n");
 		return -EAGAIN;
 	}
-*/
+
 	nvt_change_mode(MP_MODE_CC);
 
 	if (nvt_check_fw_status()) {
@@ -1540,6 +1451,7 @@ static const struct file_operations nvt_selftest_fops = {
 /*******************************************************
 Description:
 	Novatek touchscreen parse AIN setting for array type.
+
 return:
 	n.a.
 *******************************************************/
@@ -1578,6 +1490,7 @@ void nvt_mp_parse_ain(struct device_node *np, const char *name, uint8_t *array, 
 /*******************************************************
 Description:
 	Novatek touchscreen parse criterion for u32 type.
+
 return:
 	n.a.
 *******************************************************/
@@ -1598,6 +1511,7 @@ void nvt_mp_parse_u32(struct device_node *np, const char *name, int32_t *para)
 /*******************************************************
 Description:
 	Novatek touchscreen parse criterion for array type.
+
 return:
 	n.a.
 *******************************************************/
@@ -1647,6 +1561,7 @@ void nvt_mp_parse_array(struct device_node *np, const char *name, int32_t *array
 /*******************************************************
 Description:
 	Novatek touchscreen parse device tree mp function.
+
 return:
 	n.a.
 *******************************************************/
@@ -1796,12 +1711,12 @@ static int nvt_short_test(void)
 	msleep(100);
 
 	/*---Enter Test Mode---*/
-/*	if (nvt_clear_fw_status()) {
+	if (nvt_clear_fw_status()) {
 		mutex_unlock(&ts->lock);
 		NVT_ERR("clear fw status failed!\n");
 		return -EAGAIN;
 	}
-*/
+
 	nvt_change_mode(MP_MODE_CC);
 
 	if (nvt_check_fw_status()) {
@@ -1883,12 +1798,12 @@ static int nvt_open_test(void)
 	msleep(100);
 
 	/*---Enter Test Mode---*/
-/*	if (nvt_clear_fw_status()) {
+	if (nvt_clear_fw_status()) {
 		mutex_unlock(&ts->lock);
 		NVT_ERR("clear fw status failed!\n");
 		return -EAGAIN;
 	}
-*/
+
 	nvt_change_mode(MP_MODE_CC);
 
 	if (nvt_check_fw_status()) {
@@ -1975,6 +1890,7 @@ static const struct file_operations nvt_selftest_ops = {
 Description:
 	Novatek touchscreen MP function proc. file node
 	initial function.
+
 return:
 	Executive outcomes. 0---succeed. -1---failed.
 *******************************************************/
