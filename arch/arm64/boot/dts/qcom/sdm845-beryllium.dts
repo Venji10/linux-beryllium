@@ -1083,6 +1083,18 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
 	status = "okay";
 };
 
+&labibb {
+	status = "okay";
+};
+
+&ibb_regulator {
+	regulator-always-on;
+};
+
+&lab_regulator {
+	regulator-always-on;
+};
+
 &pmi8998_wled {
 	status = "okay";
 	qcom,current-limit-microamp = <20000>;
@@ -1135,6 +1147,14 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
                 };
         };
  
+};
+
+&qup_i2c14_default{
+        pinconf {
+                pins = "gpio33", "gpio34";
+                drive-strength = <2>;
+                bias-disable;
+        };
 };
  
 &uart14 {
