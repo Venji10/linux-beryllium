@@ -510,18 +510,21 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
 	vdda-pll-supply = <&vreg_l1a_0p875>;
 };
 
+/*
+
 &usb_2 {
 	status = "okay";
 };
 
 &usb_2_dwc3 {
+*/
 	/*
 	 * Though the USB block on SDM845 can support host, there's no vbus
 	 * signal for this port on MTP.  Thus (unless you have a non-compliant
 	 * hub that works without vbus) the only sensible thing is to force
 	 * peripheral mode.
 	 */
-
+/*
 	dr_mode = "peripheral";
 };
 
@@ -609,19 +612,19 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
 };
 
 &dma {
-	compatible = "ti,omap-sdma";
-	interrupts = <0 279 0>, <0 280 0>, <0 281 0>, <0 282 0>,
-		<0 283 0>, <0 284 0>, <0 293 0>, <0 294 0>,
-		<0 295 0>, <0 296 0>, <0 297 0>, <0 298 0>,
-		<0 299 0>;
-	dma-channels = <13>;
-	iommus = <&apps_smmu 0x06d6 0x0>;
-	status = "okay";
-	#dma-cells = <5>;
-};
+                compatible = "ti,omap-sdma";
+                interrupts = <0 279 0>, <0 280 0>, <0 281 0>, <0 282 0>,
+                             <0 283 0>, <0 284 0>, <0 293 0>, <0 294 0>,
+                             <0 295 0>, <0 296 0>, <0 297 0>, <0 298 0>,
+                             <0 299 0>;
+                dma-channels = <13>;
+                iommus = <&apps_smmu 0x06d6 0x0>;
+                status = "okay";
 
-&soc {
-	slim_aud: slim@171c0000 {
+                #dma-cells = <5>;
+                };
+
+       slim_aud: slim@171c0000 {
                 cell-index = <1>;
                 compatible = "qcom,slim-ngd-v2.1.0";
                 reg = <0x171c0000 0x2c000>,
@@ -641,32 +644,127 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
                                  <&apps_smmu 0x1810 0x1>;
                 };
 
-		wcd9341: codec@1 {
-			compatible = "slim217,250";
-			vdd-buck-supply = <&pm8998_s4>;
-			vdd-buck-sido-supply = <&pm8998_s4>;
-			vdd-tx-supply = <&pm8998_s4>;
-			vdd-rx-h-supply = <&pm8998_s4>;
-			vdd-micbias-supply = <&pm8998_s4>;
-			
-			interrupt-parent = <&tlmm>;
-			interrupts = <54 IRQ_TYPE_LEVEL_HIGH>;
-			interrupt-controller;
-	
-			qcom,micbias1-lvl = <2700>;
-			qcom,micbias2-lvl = <1800>;
-			qcom,micbias3-lvl = <2700>;
-			qcom,micbias4-lvl = <2700>;
-			clock-names = "wcd_clk";
-/*			clocks = <&clock_audio_lnbb AUDIO_PMIC_LNBB_CLK>; */ //TODO
-			clock-frequency = <9600000>;
-			#interrupt-cells = <1>;
-			#clock-cells = <0>;
-			#sound-dai-cells = <1>;
-	
+	wcd9341: codec@1 {
+		compatible = "slim217,250";
+		vdd-buck-supply = <&pm8998_s4>;
+		vdd-buck-sido-supply = <&pm8998_s4>;
+		vdd-tx-supply = <&pm8998_s4>;
+		vdd-rx-h-supply = <&pm8998_s4>;
+		vdd-micbias-supply = <&pm8998_s4>;
+		
+		interrupt-parent = <&tlmm>;
+		interrupts = <54 IRQ_TYPE_LEVEL_HIGH>;
+		interrupt-controller;
+
+		qcom,micbias1-lvl = <2700>;
+		qcom,micbias2-lvl = <1800>;
+		qcom,micbias3-lvl = <2700>;
+		qcom,micbias4-lvl = <2700>;
+		clock-names = "wcd_clk";
+		clocks = <&clock_audio_lnbb AUDIO_PMIC_LNBB_CLK>; //TODO
+		clock-frequency = <9600000>;
+		#interrupt-cells = <1>;
+		#clock-cells = <0>;
+		#sound-dai-cells = <1>;
+
 		};
 
-	};
+      };
+
+  &sound {
+	compatible = "qcom,sdm845-sndcard"
+	model = "sdm845-tavil-snd-card";
+
+	audio-routing =
+		"AIF4 VI", "MCLK",
+                "RX_BIAS", "MCLK",
+                "MADINPUT", "MCLK",
+                "hifi amp", "LINEOUT1",
+                "hifi amp", "LINEOUT2",
+                "AMIC2", "MIC BIAS2",
+                "MIC BIAS2", "Headset Mic",
+                "AMIC3", "MIC BIAS3",
+                "MIC BIAS3", "ANCRight Headset Mic",
+                "AMIC1", "MIC BIAS1",
+                "MIC BIAS1", "ANCLeft Headset Mic",
+                "AMIC4", "MIC BIAS3",
+                "MIC BIAS3", "ANCRight Headset Mic",
+                "AMIC5", "MIC BIAS4",
+                "MIC BIAS4", "Analog Mic5";
+
+1-dai-link {
+	link-name = "link1";
+	platform {
+
+		sound-dai =
+			<&pcm0 "msm-pcm-dsp.0">,
+			<&pcm1 "msm-pcm-dsp.1">,
+			<&pcm2 "msm-pcm-dsp.2">,
+			<&voip "msm-voip-dsp">,
+			<&voice "msm-pcm-voice">,
+			<&loopback "msm-pcm-loopback">,
+			<&compress "msm-compress-dsp">,
+			<&hostless "msm-pcm-hostless">,
+			<&afe "msm-pcm-afe">,
+			<&lsm "msm-lsm-client">,
+			<&routing "msm-pcm-routing">,
+			<&compr "msm-compr-dsp">,
+			<&pcm_noirq "msm-pcm-dsp-noirq">;
+		};
+};
+
+2-dai-link {
+	link-name = "link2";
+	cpu {
+		sound-dai = 
+			<&dai_hdmi "msm-dai-q6-hdmi.8">,
+			<&dai_dp "msm-dai-q6-dp.24608">,
+			<&dai_mi2s0 "msm-dai-q6-mi2s.0">,
+			<&dai_mi2s1 "msm-dai-q6-mi2s.1">,
+			<&dai_mi2s2 "msm-dai-q6-mi2s.2">,
+			<&dai_mi2s3 "msm-dai-q6-mi2s.3">,
+			<&dai_pri_auxpcm "msm-dai-q6-auxpcm.1">,
+			<&dai_sec_auxpcm "msm-dai-q6-auxpcm.2">,
+			<&dai_tert_auxpcm "msm-dai-q6-auxpcm.3">,
+			<&dai_quat_auxpcm "msm-dai-q6-auxpcm.4">,
+			<&sb_0_rx "msm-dai-q6-dev.16384">,
+			<&sb_0_tx "msm-dai-q6-dev.16385">, 
+			<&sb_1_rx "msm-dai-q6-dev.16386">,
+			<&sb_1_tx "msm-dai-q6-dev.16387">,
+			<&sb_2_rx "msm-dai-q6-dev.16388">, 
+			<&sb_2_tx "msm-dai-q6-dev.16389">,
+			<&sb_3_rx "msm-dai-q6-dev.16390">, 
+			<&sb_3_tx "msm-dai-q6-dev.16391">,
+			<&sb_4_rx "msm-dai-q6-dev.16392">,
+			<&sb_4_tx "msm-dai-q6-dev.16393">,
+			<&sb_5_tx "msm-dai-q6-dev.16395">,
+			<&afe_pcm_rx "msm-dai-q6-dev.224">,
+			<&afe_pcm_tx "msm-dai-q6-dev.225">,
+			<&afe_proxy_rx "msm-dai-q6-dev.241">,
+			<&afe_proxy_tx "msm-dai-q6-dev.240">,
+			<&incall_record_rx "msm-dai-q6-dev.32771">,
+			<&incall_record_tx "msm-dai-q6-dev.32772">, 
+			<&incall_music_rx "msm-dai-q6-dev.32773">,
+			<&incall_music_2_rx "msm-dai-q6-dev.32770">,
+			<&sb_5_rx "msm-dai-q6-dev.16394">,
+			<&sb_6_rx "msm-dai-q6-dev.16396">,
+			<&sb_7_rx "msm-dai-q6-dev.16398">, 
+			<&sb_7_tx "msm-dai-q6-dev.16399">,
+			<&sb_8_tx "msm-dai-q6-dev.16401">,
+			<&usb_audio_rx "msm-dai-q6-dev.28672">,
+			<&usb_audio_tx "msm-dai-q6-dev.28673">,
+			<&dai_pri_tdm_rx_0 "msm-dai-q6-tdm.36864">,
+			<&dai_pri_tdm_tx_0 "msm-dai-q6-tdm.36865">,
+			<&dai_sec_tdm_rx_0 "msm-dai-q6-tdm.36880">,
+			<&dai_sec_tdm_tx_0 "msm-dai-q6-tdm.36881">,
+			<&dai_tert_tdm_rx_0 "msm-dai-q6-tdm.36896">,
+			<&dai_tert_tdm_tx_0 "msm-dai-q6-tdm.36897">,
+			<&dai_quat_tdm_rx_0 "msm-dai-q6-tdm.36912">,
+			<&dai_quat_tdm_tx_0 "msm-dai-q6-tdm.36913">,
+			<&dai_quat_tdm_rx_1 "msm-dai-q6-tdm.36914">;
+
+		};
+};
 };
 
 &tlmm {
@@ -1061,99 +1159,4 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
  
         status = "okay";
 
-};
-
-&sound {
-		compatible = "qcom,sdm845-sndcard"
-		model = "sdm845-tavil-snd-card";
-
-		audio-routing =
-			"AIF4 VI", "MCLK",
-        	        "RX_BIAS", "MCLK",
-        	        "MADINPUT", "MCLK",
-        	        "hifi amp", "LINEOUT1",
-        	        "hifi amp", "LINEOUT2",
-        	        "AMIC2", "MIC BIAS2",
-        	        "MIC BIAS2", "Headset Mic",
-        	        "AMIC3", "MIC BIAS3",
-        	        "MIC BIAS3", "ANCRight Headset Mic",
-        	        "AMIC1", "MIC BIAS1",
-        	        "MIC BIAS1", "ANCLeft Headset Mic",
-        	        "AMIC4", "MIC BIAS3",
-        	        "MIC BIAS3", "ANCRight Headset Mic",
-        	        "AMIC5", "MIC BIAS4",
-        	        "MIC BIAS4", "Analog Mic5";
-	
-	1-dai-link {
-		link-name = "link1";
-		platform {
-			sound-dai =
-			<&pcm0 "msm-pcm-dsp.0">,
-			<&pcm1 "msm-pcm-dsp.1">,
-			<&pcm2 "msm-pcm-dsp.2">,
-			<&voip "msm-voip-dsp">,
-			<&voice "msm-pcm-voice">,
-			<&loopback "msm-pcm-loopback">,
-			<&compress "msm-compress-dsp">,
-			<&hostless "msm-pcm-hostless">,
-			<&afe "msm-pcm-afe">,
-			<&lsm "msm-lsm-client">,
-			<&routing "msm-pcm-routing">,
-			<&compr "msm-compr-dsp">,
-			<&pcm_noirq "msm-pcm-dsp-noirq">;
-		};
-	};
-
-	2-dai-link {
-		link-name = "link2";
-		cpu {
-			sound-dai = 
-				<&dai_hdmi "msm-dai-q6-hdmi.8">,
-				<&dai_dp "msm-dai-q6-dp.24608">,
-				<&dai_mi2s0 "msm-dai-q6-mi2s.0">,
-				<&dai_mi2s1 "msm-dai-q6-mi2s.1">,
-				<&dai_mi2s2 "msm-dai-q6-mi2s.2">,
-				<&dai_mi2s3 "msm-dai-q6-mi2s.3">,
-				<&dai_pri_auxpcm "msm-dai-q6-auxpcm.1">,
-				<&dai_sec_auxpcm "msm-dai-q6-auxpcm.2">,
-				<&dai_tert_auxpcm "msm-dai-q6-auxpcm.3">,
-				<&dai_quat_auxpcm "msm-dai-q6-auxpcm.4">,
-				<&sb_0_rx "msm-dai-q6-dev.16384">,
-				<&sb_0_tx "msm-dai-q6-dev.16385">, 
-				<&sb_1_rx "msm-dai-q6-dev.16386">,
-				<&sb_1_tx "msm-dai-q6-dev.16387">,
-				<&sb_2_rx "msm-dai-q6-dev.16388">, 
-				<&sb_2_tx "msm-dai-q6-dev.16389">,
-				<&sb_3_rx "msm-dai-q6-dev.16390">, 
-				<&sb_3_tx "msm-dai-q6-dev.16391">,
-				<&sb_4_rx "msm-dai-q6-dev.16392">,
-				<&sb_4_tx "msm-dai-q6-dev.16393">,
-				<&sb_5_tx "msm-dai-q6-dev.16395">,
-				<&afe_pcm_rx "msm-dai-q6-dev.224">,
-				<&afe_pcm_tx "msm-dai-q6-dev.225">,
-				<&afe_proxy_rx "msm-dai-q6-dev.241">,
-				<&afe_proxy_tx "msm-dai-q6-dev.240">,
-				<&incall_record_rx "msm-dai-q6-dev.32771">,
-				<&incall_record_tx "msm-dai-q6-dev.32772">, 
-				<&incall_music_rx "msm-dai-q6-dev.32773">,
-				<&incall_music_2_rx "msm-dai-q6-dev.32770">,
-				<&sb_5_rx "msm-dai-q6-dev.16394">,
-				<&sb_6_rx "msm-dai-q6-dev.16396">,
-				<&sb_7_rx "msm-dai-q6-dev.16398">, 
-				<&sb_7_tx "msm-dai-q6-dev.16399">,
-				<&sb_8_tx "msm-dai-q6-dev.16401">,
-				<&usb_audio_rx "msm-dai-q6-dev.28672">,
-				<&usb_audio_tx "msm-dai-q6-dev.28673">,
-				<&dai_pri_tdm_rx_0 "msm-dai-q6-tdm.36864">,
-				<&dai_pri_tdm_tx_0 "msm-dai-q6-tdm.36865">,
-				<&dai_sec_tdm_rx_0 "msm-dai-q6-tdm.36880">,
-				<&dai_sec_tdm_tx_0 "msm-dai-q6-tdm.36881">,
-				<&dai_tert_tdm_rx_0 "msm-dai-q6-tdm.36896">,
-				<&dai_tert_tdm_tx_0 "msm-dai-q6-tdm.36897">,
-				<&dai_quat_tdm_rx_0 "msm-dai-q6-tdm.36912">,
-				<&dai_quat_tdm_tx_0 "msm-dai-q6-tdm.36913">,
-				<&dai_quat_tdm_rx_1 "msm-dai-q6-tdm.36914">;
-
-			};
-		};
 };
