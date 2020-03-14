@@ -1516,7 +1516,7 @@
 
 		ipa@1e40000 {
 			compatible = "qcom,sdm845-ipa";
-
+ 			status = "okay";
 			modem-init;
 			modem-remoteproc = <&mss_pil>;
 
