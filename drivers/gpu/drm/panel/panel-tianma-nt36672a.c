@@ -253,9 +253,9 @@ static int tianma_panel_power_on(struct panel_info *pinfo)
 	 * for 10ms, but to prevent a white screen, I used 20ms for each
 	 */
 	gpiod_set_value(pinfo->reset_gpio, 0);
-	msleep(200);
+	msleep(20);
 	gpiod_set_value(pinfo->reset_gpio, 1);
-	msleep(200);
+	msleep(20);
 
 	return 0;
 }
