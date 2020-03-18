@@ -624,7 +624,7 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
                 #dma-cells = <5>;
                 };
 
-       slim_aud: slim@171c0000 {
+/*       slim_aud: slim@171c0000 {
                 cell-index = <1>;
                 compatible = "qcom,slim-ngd-v2.1.0";
                 reg = <0x171c0000 0x2c000>,
@@ -766,6 +766,7 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
 		};
 };
 };
+*/
 
 &tlmm {
 	gpio-reserved-ranges = <0 4>, <81 4>;
