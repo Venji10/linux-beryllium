@@ -209,6 +209,7 @@ extern struct nvt_ts_data *ts;
 /*---extern functions---*/
 extern int32_t CTP_I2C_READ(struct i2c_client *client, uint16_t address, uint8_t *buf, uint16_t len);
 extern int32_t CTP_I2C_WRITE(struct i2c_client *client, uint16_t address, uint8_t *buf, uint16_t len);
+//extern int CTP_I2C_WRITE(struct i2c_client *client, u16 reg, const u8 *buf, unsigned len);
 extern int nvt_bootloader_reset(void);
 extern void nvt_sw_reset_idle(void);
 extern int32_t nvt_check_fw_reset_state(RST_COMPLETE_STATE check_reset_state);

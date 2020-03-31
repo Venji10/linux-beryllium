@@ -169,6 +169,7 @@ int32_t CTP_I2C_WRITE(struct i2c_client *client, uint16_t address, uint8_t *buf,
 	int32_t retries = 0;
 
 	msg.flags = !I2C_M_RD;
+//	msg.flags = 0;
 	msg.addr  = address;
 	msg.len   = len;
 	msg.buf   = buf;
@@ -219,7 +220,9 @@ int nvt_bootloader_reset(void)
 {
 	int ret = 0;
 	uint8_t buf[8] = {0};
-
+	
+	//HERE
+	
 	/*write i2c cmds to reset*/
 	buf[0] = 0x00;
 	buf[1] = 0x69;
@@ -877,7 +880,7 @@ static const char *nvt_get_config(struct nvt_ts_data *ts)
 	return ts->config_array[i].nvt_cfg_name;
 }
 
-static int nvt_get_reg(struct nvt_ts_data *ts, bool get)
+static int nvt_get_reg(struct nvt_ts_data *ts, bool get) //REGULATORS
 {
 	int retval;
 
@@ -1380,6 +1383,7 @@ static int8_t nvt_ts_check_chip_ver_trim(void)
 	int32_t found_nvt_chip = 0;
 	int32_t ret = -1;
 
+//HERE
 	ret = nvt_bootloader_reset(); /* NOT in retry loop */
 	if (ret < 0) {
 		NVT_ERR("Can't reset the nvt ic\n");
@@ -1715,6 +1719,12 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 		goto err_gpio_config_failed;
 	}
 
+       /*--- request regulator---*/
+        nvt_get_reg(ts, true); //REGULATORS
+
+        /* we should enable the reg for lpwg mode */
+        nvt_enable_reg(ts, true);
+
 	/*---check i2c func.---*/
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
 		NVT_ERR("i2c_check_functionality failed. (no I2C_FUNC_I2C)\n");
@@ -1725,6 +1735,7 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 	/* need 10ms delay after POR(power on reset) */
 	msleep(10);
 
+	//HERE
 	/*---check chip version trim---*/
 	ret = nvt_ts_check_chip_ver_trim();
 	if (ret) {
@@ -1816,10 +1827,10 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 	}
 
 	/*--- request regulator---*/
-	nvt_get_reg(ts, true);
+//	nvt_get_reg(ts, true); //REGULATORS
 
 	/* we should enable the reg for lpwg mode */
-	nvt_enable_reg(ts, true);
+//	nvt_enable_reg(ts, true);
 
 	/*---set int-pin & request irq---*/
 	client->irq = gpio_to_irq(ts->irq_gpio);
