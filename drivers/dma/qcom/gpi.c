@@ -2668,6 +2668,8 @@ static int gpi_probe(struct platform_device *pdev)
 	if (!gpi_dev)
 		return -ENOMEM;
 
+	GPI_LOG(gpi_dev, "gpi dma 1111\n");
+
 	gpi_dev->dev = &pdev->dev;
 	gpi_dev->klog_lvl = DEFAULT_KLOG_LVL;
 	gpi_dev->res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
@@ -2683,6 +2685,8 @@ static int gpi_probe(struct platform_device *pdev)
 		return -EFAULT;
 	}
 
+	GPI_LOG(gpi_dev, "gpi dma 2222\n");
+
 	ret = of_property_read_u32(gpi_dev->dev->of_node, "qcom,max-num-gpii",
 				   &gpi_dev->max_gpii);
 	if (ret) {
@@ -2697,12 +2701,16 @@ static int gpi_probe(struct platform_device *pdev)
 		return ret;
 	}
 
+	GPI_LOG(gpi_dev, "gpi dma 3333\n");
+
 	ret = of_property_read_u32(gpi_dev->dev->of_node, "qcom,ev-factor",
 				   &gpi_dev->ev_factor);
 	if (ret) {
 		GPI_ERR(gpi_dev, "missing 'qcom,ev-factor' DT node\n");
 		return ret;
 	}
+
+	GPI_LOG(gpi_dev, "gpi dma 4444\n");
 
 	ret = of_property_read_u32(gpi_dev->dev->of_node, "qcom,smmu-cfg",
 				   &gpi_dev->smmu_cfg);
@@ -2711,7 +2719,7 @@ static int gpi_probe(struct platform_device *pdev)
 		return ret;
 	}
 
-	GPI_ERR(gpi_dev, "gpi dma 1111\n");
+	GPI_LOG(gpi_dev, "gpi dma 5555\n");
 
 	if (gpi_dev->smmu_cfg && !(gpi_dev->smmu_cfg & GPI_SMMU_S1_BYPASS)) {
 		u64 iova_range[2];
