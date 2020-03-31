@@ -2710,6 +2710,9 @@ static int gpi_probe(struct platform_device *pdev)
 		GPI_ERR(gpi_dev, "missing 'qcom,smmu-cfg' DT node\n");
 		return ret;
 	}
+
+	GPI_ERR(gpi_dev, "gpi dma 1111\n");
+
 	if (gpi_dev->smmu_cfg && !(gpi_dev->smmu_cfg & GPI_SMMU_S1_BYPASS)) {
 		u64 iova_range[2];
 
