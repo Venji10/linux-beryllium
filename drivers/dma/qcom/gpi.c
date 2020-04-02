@@ -2591,8 +2591,11 @@ static int gpi_smmu_init(struct gpi_dev *gpi_dev)
 			GPI_ERR(gpi_dev,
 				"Failed to create iommu mapping, ret:%ld\n",
 				PTR_ERR(mapping));
+			GPI_LOG(gpi_dev, "gpi dma failed to create mapping\n");
 			return PTR_ERR(mapping);
 		}
+
+		GPI_LOG(gpi_dev, "gpi dma AAAA\n");
 
 		if (gpi_dev->smmu_cfg & GPI_SMMU_S1_BYPASS) {
 			int s1_bypass = 1;
@@ -2607,6 +2610,8 @@ static int gpi_smmu_init(struct gpi_dev *gpi_dev)
 			}
 		}
 
+		GPI_LOG(gpi_dev, "gpi dma BBBB\n");
+
 		if (gpi_dev->smmu_cfg & GPI_SMMU_FAST) {
 			int fast = 1;
 
@@ -2619,6 +2624,8 @@ static int gpi_smmu_init(struct gpi_dev *gpi_dev)
 				goto release_mapping;
 			}
 		}
+
+		GPI_LOG(gpi_dev, "gpi dma CCCC\n");
 
 		if (gpi_dev->smmu_cfg & GPI_SMMU_ATOMIC) {
 			int atomic = 1;
@@ -2633,6 +2640,8 @@ static int gpi_smmu_init(struct gpi_dev *gpi_dev)
 			}
 		}
 
+		GPI_LOG(gpi_dev, "gpi dma DDDD\n");
+
 		ret = arm_iommu_attach_device(gpi_dev->dev, mapping);
 		if (ret) {
 			GPI_ERR(gpi_dev,
@@ -2640,6 +2649,8 @@ static int gpi_smmu_init(struct gpi_dev *gpi_dev)
 			goto release_mapping;
 		}
 	}
+
+	GPI_LOG(gpi_dev, "gpi dma EEEE\n");
 
 	GPI_LOG(gpi_dev, "Setting dma mask to 64\n");
 	ret = dma_set_mask(gpi_dev->dev, DMA_BIT_MASK(64));
@@ -2745,8 +2756,11 @@ static int gpi_probe(struct platform_device *pdev)
 		gpi_dev->iova_size = iova_range[1];
 	}
 
+	GPI_LOG(gpi_dev, "gpi dma 6666\n");
+
 	ret = gpi_smmu_init(gpi_dev);
 	if (ret) {
+		GPI_LOG(gpi_dev, "gpi dma smmu issue\n"); //TEST FOR PRINT
 		GPI_ERR(gpi_dev, "error configuring smmu, ret:%d\n", ret);
 		return ret;
 	}
@@ -2754,6 +2768,9 @@ static int gpi_probe(struct platform_device *pdev)
 	gpi_dev->gpiis = devm_kzalloc(gpi_dev->dev,
 				sizeof(*gpi_dev->gpiis) * gpi_dev->max_gpii,
 				GFP_KERNEL);
+
+	GPI_LOG(gpi_dev, "gpi dma 7777\n");
+
 	if (!gpi_dev->gpiis)
 		return -ENOMEM;
 
@@ -2793,6 +2810,8 @@ static int gpi_probe(struct platform_device *pdev)
 			return ret;
 		}
 		gpii->irq = ret;
+
+		GPI_LOG(gpi_dev, "gpi dma 8888\n");
 
 		/* set up channel specific register info */
 		for (chan = 0; chan < MAX_CHANNELS_PER_GPII; chan++) {
@@ -2858,6 +2877,8 @@ static int gpi_probe(struct platform_device *pdev)
 	gpi_dev->dma_device.dev = gpi_dev->dev;
 	gpi_dev->dma_device.device_pause = gpi_pause;
 	gpi_dev->dma_device.device_resume = gpi_resume;
+
+	GPI_LOG(gpi_dev, "gpi dma 9999\n");
 
 	/* register with dmaengine framework */
 	ret = dma_async_device_register(&gpi_dev->dma_device);
