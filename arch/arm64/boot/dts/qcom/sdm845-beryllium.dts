@@ -1089,9 +1089,7 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
 	qcom,switching-freq = <600>;
 };
 
-&soc {
-
-        gpi_dma1: qcom,gpi-dma@a00000 /* 0xa00000 */ {
+        &dma {
                 #dma-cells = <5>;
 //		#address-cells = <5>;
 //        	#size-cells = <5>;
@@ -1111,8 +1109,19 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
                 qcom,iova-range = <0x0 0x100000 0x0 0x100000>;
                 status = "okay";
         };
+/*
+
+&apps_smmu {
+
+	status = "okay";
 
 };
+
+&lpasscc {
+
+	status= "okay";
+
+}
 
 &dma {
                 compatible = "ti,omap-sdma";
@@ -1127,7 +1136,7 @@ pinctrl-names = "active", "sleep", "ds_400KHz",
                 #dma-cells = <5>;
                 };
 
-
+*/
 &i2c14 {
 
         status="okay";

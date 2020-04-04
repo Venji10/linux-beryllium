@@ -2646,6 +2646,8 @@ static int gpi_smmu_init(struct gpi_dev *gpi_dev)
 		if (ret) {
 			GPI_ERR(gpi_dev,
 				"Failed with iommu_attach, ret:%d\n", ret);
+			GPI_LOG(gpi_dev,
+                                "Failed with iommu_attach, ret:%d\n", ret);
 			goto release_mapping;
 		}
 	}

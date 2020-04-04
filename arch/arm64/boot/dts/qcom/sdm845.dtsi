@@ -1326,7 +1326,7 @@
 			};
 		};
 
-			dma: dma@0xa00000 {
+			dma: qcom,gpi-dma@0xa00000 {
 				status = "disabled";
 			};
 
