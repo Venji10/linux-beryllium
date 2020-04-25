@@ -198,7 +198,7 @@
 &adsp_pas {
 	status = "okay";
 
-	firmware-name = "qcom/db845c/adsp.mdt";
+	firmware-name = "qcom/sdm845/adsp.mdt";
 };
 
 &apps_rsc {
@@ -285,6 +285,7 @@
 			regulator-max-microvolt = <1800000>;
 			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
 			regulator-boot-on;
+			regualtor-always-on;
                 };
 
 
@@ -331,6 +332,7 @@
 			regulator-max-microvolt = <3008000>;
 			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
 			regulator-boot-on;
+			regulator-always-on;
 		};
 	};
 
@@ -351,15 +353,23 @@
 
 &cdsp_pas {
 	status = "okay";
-	firmware-name = "qcom/db845c/cdsp.mdt";
+	firmware-name = "qcom/sdm845/cdsp.mdt";
 };
 
 &gcc {
 	protected-clocks = <GCC_QSPI_CORE_CLK>,
 			   <GCC_QSPI_CORE_CLK_SRC>,
-			   <GCC_QSPI_CNOC_PERIPH_AHB_CLK>;
+			   <GCC_QSPI_CNOC_PERIPH_AHB_CLK>,
+			   <GCC_LPASS_Q6_AXI_CLK>,
+			   <GCC_LPASS_SWAY_CLK>;
 };
 
+&mss_pil {
+	status = "okay";
+	firmware-name = "qcom/sdm845/mba.mbn", "qcom/sdm845/modem.mbn";
+};
+
+/*
 &pcie0 {
 	status = "okay";
 	perst-gpio = <&tlmm 35 GPIO_ACTIVE_LOW>;
@@ -372,6 +382,7 @@
 
 	vddpe-3v3-supply = <&pcie0_3p3v_dual>;
 };
+*/
 
 &pcie0_phy {
 	status = "okay";
@@ -411,14 +422,24 @@
 &sdhc_2 {
 	status = "okay";
 
-	pinctrl-names = "default";
-	pinctrl-0 = <&sdc2_default_state &sdc2_card_det_n>;
-
 	vmmc-supply = <&vreg_l21a_2p95>;
 	vqmmc-supply = <&vreg_l13a_2p95>;
 
-	bus-width = <4>;
-	cd-gpios = <&tlmm 126 GPIO_ACTIVE_LOW>;
+pinctrl-names = "active", "sleep", "ds_400KHz",
+                        "ds_50MHz", "ds_100MHz", "ds_200MHz";
+        pinctrl-0 = <&sdc2_clk_on  &sdc2_cmd_on &sdc2_data_on &storage_cd>;
+        pinctrl-1 = <&sdc2_clk_off &sdc2_cmd_off &sdc2_data_off &storage_cd>;
+        pinctrl-2 = <&sdc2_clk_ds_400KHz
+                        &sdc2_cmd_ds_400KHz &sdc2_data_ds_400KHz>;
+        pinctrl-3 = <&sdc2_clk_ds_50MHz
+                        &sdc2_cmd_ds_50MHz &sdc2_data_ds_50MHz>;
+        pinctrl-4 = <&sdc2_clk_ds_100MHz
+                        &sdc2_cmd_ds_100MHz &sdc2_data_ds_100MHz>;
+        pinctrl-5 = <&sdc2_clk_ds_200MHz
+                        &sdc2_cmd_ds_200MHz &sdc2_data_ds_200MHz>;
+
+        cd-gpios = <&tlmm 126 GPIO_ACTIVE_HIGH>;
+
 };
 
 &tlmm {
@@ -431,7 +452,7 @@
 		drive-strength = <2>;
 		bias-disable;
 	};
-
+/*
 	pcie0_perst_state: pcie0-reset {
 		pins = "gpio35";
 		function = "gpio";
@@ -454,7 +475,7 @@
 		drive-strength = <2>;
 		bias-pull-up;
 	};
-
+*/
 	sdc2_default_state: sdc2-default {
 		clk {
 			pins = "sdc2_clk";
@@ -510,7 +531,13 @@
 };
 
 &usb_1_dwc3 {
+	/* Until we have Type C hooked up we'll force this as host. */
+	/* Fixme: Pixel 3 XL: set to peripheral since we only have one port */
 	dr_mode = "peripheral";
+	maximum-speed = "high-speed";
+	/* Crosshatch hack: disable USB-3 phy for now. I don't have this enabled in Kconfig yet. */
+	phys = <&usb_1_hsphy>;
+	phy-names = "usb2-phy";
 };
 
 &usb_1_hsphy {
@@ -533,20 +560,30 @@
 	vdda-pll-supply = <&vreg_l1a_0p875>;
 };
 
+/*
+
 &usb_2 {
 	status = "okay";
 };
 
 &usb_2_dwc3 {
-	dr_mode = "host";
+*/
+	/*
+	 * Though the USB block on SDM845 can support host, there's no vbus
+	 * signal for this port on MTP.  Thus (unless you have a non-compliant
+	 * hub that works without vbus) the only sensible thing is to force
+	 * peripheral mode.
+	 */
+/*
+	dr_mode = "peripheral";
 };
 
 &usb_2_hsphy {
 	status = "okay";
 
-	vdd-supply = <&vreg_l1a_0p875>;
-	vdda-pll-supply = <&vreg_l12a_1p8>;
-	vdda-phy-dpdm-supply = <&vreg_l24a_3p075>;
+	vdd-supply = <&vdda_usb2_ss_core>;
+	vdda-pll-supply = <&vdda_qusb_hs0_1p8>;
+	vdda-phy-dpdm-supply = <&vdda_qusb_hs0_3p1>;
 
 	qcom,imp-res-offset-value = <8>;
 	qcom,hstx-trim-value = <QUSB2_V2_HSTX_TRIM_22_8_MA>;
@@ -555,14 +592,15 @@
 &usb_2_qmpphy {
 	status = "okay";
 
-	vdda-phy-supply = <&vreg_l26a_1p2>;
-	vdda-pll-supply = <&vreg_l1a_0p875>;
+	vdda-phy-supply = <&vdda_usb2_ss_1p2>;
+	vdda-pll-supply = <&vdda_usb2_ss_core>;
 };
+
 
 &ufs_mem_hc {
 	status = "okay";
 
-	reset-gpios = <&tlmm 150 GPIO_ACTIVE_LOW>;
+	device-reset-gpios = <&tlmm 150 GPIO_ACTIVE_LOW>;
 
 	vcc-supply = <&vreg_l20a_2p95>;
 	vcc-max-microamp = <800000>;
@@ -623,6 +661,407 @@
 	};
 };
 
+/*       slim_aud: slim@171c0000 {
+                cell-index = <1>;
+                compatible = "qcom,slim-ngd-v2.1.0";
+                reg = <0x171c0000 0x2c000>,
+                        <0x17184000 0x2a000>;
+                reg-names = "slimbus_physical", "slimbus_bam_physical";
+                interrupts = <0 163 0>, <0 164 0>;
+                interrupt-names = "slimbus_irq", "slimbus_bam_irq";
+                qcom,apps-ch-pipes = <0x780000>;
+                qcom,ea-pc = <0x270>;
+                qcom,iommu-s1-bypass;
+
+                iommu_slim_aud_ctrl_cb: qcom,iommu_slim_ctrl_cb {
+                        compatible = "qcom,iommu-slim-ctrl-cb";
+                        iommus = <&apps_smmu 0x1806 0x0>,
+                                 <&apps_smmu 0x180d 0x0>,
+                                 <&apps_smmu 0x180e 0x1>,
+                                 <&apps_smmu 0x1810 0x1>;
+                };
+
+	wcd9341: codec@1 {
+		compatible = "slim217,250";
+		vdd-buck-supply = <&pm8998_s4>;
+		vdd-buck-sido-supply = <&pm8998_s4>;
+		vdd-tx-supply = <&pm8998_s4>;
+		vdd-rx-h-supply = <&pm8998_s4>;
+		vdd-micbias-supply = <&pm8998_s4>;
+		
+		interrupt-parent = <&tlmm>;
+		interrupts = <54 IRQ_TYPE_LEVEL_HIGH>;
+		interrupt-controller;
+
+		qcom,micbias1-lvl = <2700>;
+		qcom,micbias2-lvl = <1800>;
+		qcom,micbias3-lvl = <2700>;
+		qcom,micbias4-lvl = <2700>;
+		clock-names = "wcd_clk";
+		clocks = <&clock_audio_lnbb AUDIO_PMIC_LNBB_CLK>; //TODO
+		clock-frequency = <9600000>;
+		#interrupt-cells = <1>;
+		#clock-cells = <0>;
+		#sound-dai-cells = <1>;
+
+		};
+
+      };
+
+  &sound {
+	compatible = "qcom,sdm845-sndcard"
+	model = "sdm845-tavil-snd-card";
+
+	audio-routing =
+		"AIF4 VI", "MCLK",
+                "RX_BIAS", "MCLK",
+                "MADINPUT", "MCLK",
+                "hifi amp", "LINEOUT1",
+                "hifi amp", "LINEOUT2",
+                "AMIC2", "MIC BIAS2",
+                "MIC BIAS2", "Headset Mic",
+                "AMIC3", "MIC BIAS3",
+                "MIC BIAS3", "ANCRight Headset Mic",
+                "AMIC1", "MIC BIAS1",
+                "MIC BIAS1", "ANCLeft Headset Mic",
+                "AMIC4", "MIC BIAS3",
+                "MIC BIAS3", "ANCRight Headset Mic",
+                "AMIC5", "MIC BIAS4",
+                "MIC BIAS4", "Analog Mic5";
+
+1-dai-link {
+	link-name = "link1";
+	platform {
+
+		sound-dai =
+			<&pcm0 "msm-pcm-dsp.0">,
+			<&pcm1 "msm-pcm-dsp.1">,
+			<&pcm2 "msm-pcm-dsp.2">,
+			<&voip "msm-voip-dsp">,
+			<&voice "msm-pcm-voice">,
+			<&loopback "msm-pcm-loopback">,
+			<&compress "msm-compress-dsp">,
+			<&hostless "msm-pcm-hostless">,
+			<&afe "msm-pcm-afe">,
+			<&lsm "msm-lsm-client">,
+			<&routing "msm-pcm-routing">,
+			<&compr "msm-compr-dsp">,
+			<&pcm_noirq "msm-pcm-dsp-noirq">;
+		};
+};
+
+2-dai-link {
+	link-name = "link2";
+	cpu {
+		sound-dai = 
+			<&dai_hdmi "msm-dai-q6-hdmi.8">,
+			<&dai_dp "msm-dai-q6-dp.24608">,
+			<&dai_mi2s0 "msm-dai-q6-mi2s.0">,
+			<&dai_mi2s1 "msm-dai-q6-mi2s.1">,
+			<&dai_mi2s2 "msm-dai-q6-mi2s.2">,
+			<&dai_mi2s3 "msm-dai-q6-mi2s.3">,
+			<&dai_pri_auxpcm "msm-dai-q6-auxpcm.1">,
+			<&dai_sec_auxpcm "msm-dai-q6-auxpcm.2">,
+			<&dai_tert_auxpcm "msm-dai-q6-auxpcm.3">,
+			<&dai_quat_auxpcm "msm-dai-q6-auxpcm.4">,
+			<&sb_0_rx "msm-dai-q6-dev.16384">,
+			<&sb_0_tx "msm-dai-q6-dev.16385">, 
+			<&sb_1_rx "msm-dai-q6-dev.16386">,
+			<&sb_1_tx "msm-dai-q6-dev.16387">,
+			<&sb_2_rx "msm-dai-q6-dev.16388">, 
+			<&sb_2_tx "msm-dai-q6-dev.16389">,
+			<&sb_3_rx "msm-dai-q6-dev.16390">, 
+			<&sb_3_tx "msm-dai-q6-dev.16391">,
+			<&sb_4_rx "msm-dai-q6-dev.16392">,
+			<&sb_4_tx "msm-dai-q6-dev.16393">,
+			<&sb_5_tx "msm-dai-q6-dev.16395">,
+			<&afe_pcm_rx "msm-dai-q6-dev.224">,
+			<&afe_pcm_tx "msm-dai-q6-dev.225">,
+			<&afe_proxy_rx "msm-dai-q6-dev.241">,
+			<&afe_proxy_tx "msm-dai-q6-dev.240">,
+			<&incall_record_rx "msm-dai-q6-dev.32771">,
+			<&incall_record_tx "msm-dai-q6-dev.32772">, 
+			<&incall_music_rx "msm-dai-q6-dev.32773">,
+			<&incall_music_2_rx "msm-dai-q6-dev.32770">,
+			<&sb_5_rx "msm-dai-q6-dev.16394">,
+			<&sb_6_rx "msm-dai-q6-dev.16396">,
+			<&sb_7_rx "msm-dai-q6-dev.16398">, 
+			<&sb_7_tx "msm-dai-q6-dev.16399">,
+			<&sb_8_tx "msm-dai-q6-dev.16401">,
+			<&usb_audio_rx "msm-dai-q6-dev.28672">,
+			<&usb_audio_tx "msm-dai-q6-dev.28673">,
+			<&dai_pri_tdm_rx_0 "msm-dai-q6-tdm.36864">,
+			<&dai_pri_tdm_tx_0 "msm-dai-q6-tdm.36865">,
+			<&dai_sec_tdm_rx_0 "msm-dai-q6-tdm.36880">,
+			<&dai_sec_tdm_tx_0 "msm-dai-q6-tdm.36881">,
+			<&dai_tert_tdm_rx_0 "msm-dai-q6-tdm.36896">,
+			<&dai_tert_tdm_tx_0 "msm-dai-q6-tdm.36897">,
+			<&dai_quat_tdm_rx_0 "msm-dai-q6-tdm.36912">,
+			<&dai_quat_tdm_tx_0 "msm-dai-q6-tdm.36913">,
+			<&dai_quat_tdm_rx_1 "msm-dai-q6-tdm.36914">;
+
+		};
+};
+};
+*/
+
+&tlmm {
+	gpio-reserved-ranges = <0 4>, <81 4>;
+
+                ts_int_active: ts_int_active {
+                        mux {
+                                pins = "gpio31";
+                                function = "gpio";
+                        };
+
+                        config {
+                                pins = "gpio31";
+                                drive-strength = <16>;
+                                bias-pull-down;
+                                input-enable;
+                        };
+                };
+
+                ts_reset_active: ts_reset_active {
+                        mux {
+                                pins = "gpio32";
+                                function = "gpio";
+                        };
+
+                        config {
+                                pins = "gpio32";
+                                drive-strength = <16>;
+                                output-high;
+                        };
+                };
+
+                ts_reset_suspend: ts_reset_suspend {
+                        mux {
+                                pins = "gpio32";
+                                function = "gpio";
+                        };
+
+                        config {
+                                pins = "gpio32";
+                                drive-strength = <2>;
+                                bias-disable;
+                                output-low;
+                        };
+                };
+
+                ts_int_suspend: ts_int_suspend {
+                        mux {
+                                pins = "gpio31";
+                                function = "gpio";
+                        };
+
+                        config {
+                                pins = "gpio31";
+                                drive-strength = <2>;
+                                bias-pull-down;
+                                input-enable;
+                        };
+                };
+
+	sdc2_clk: sdc2-clk {
+		pinconf {
+			pins = "sdc2_clk";
+			bias-disable;
+
+			/*
+			 * It seems that mmc_test reports errors if drive
+			 * strength is not 16 on clk, cmd, and data pins.
+			 */
+			drive-strength = <16>;
+		};
+	};
+
+	sdc2_cmd: sdc2-cmd {
+		pinconf {
+			pins = "sdc2_cmd";
+			bias-pull-up;
+			drive-strength = <16>;
+		};
+	};
+
+	sdc2_data: sdc2-data {
+		pinconf {
+			pins = "sdc2_data";
+			bias-pull-up;
+			drive-strength = <16>;
+		};
+	};
+
+	sd_card_det_n: sd-card-det-n {
+		pinmux {
+			pins = "gpio126";
+			function = "gpio";
+		};
+
+		pinconf {
+			pins = "gpio126";
+			bias-pull-up;
+		};
+	};
+		storage_cd: storage_cd {
+			mux {
+				pins = "gpio126";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio126";
+				bias-pull-up;           /* pull up */
+				drive-strength = <2>;   /* 2 MA */
+			};
+		};
+
+		sdc2_clk_on: sdc2_clk_on {
+			config {
+				pins = "sdc2_clk";
+				bias-disable;		/* NO pull */
+				drive-strength = <16>;	/* 16 MA */
+			};
+		};
+
+		sdc2_clk_off: sdc2_clk_off {
+			config {
+				pins = "sdc2_clk";
+				bias-disable;		/* NO pull */
+				drive-strength = <2>;	/* 2 MA */
+			};
+		};
+
+		sdc2_clk_ds_400KHz: sdc2_clk_ds_400KHz {
+			config {
+				pins = "sdc2_clk";
+				bias-disable;		/* NO pull */
+				drive-strength = <16>;	/* 16 MA */
+			};
+		};
+
+		sdc2_clk_ds_50MHz: sdc2_clk_ds_50MHz {
+			config {
+				pins = "sdc2_clk";
+				bias-disable;		/* NO pull */
+				drive-strength = <16>;	/* 16 MA */
+			};
+		};
+
+		sdc2_clk_ds_100MHz: sdc2_clk_ds_100MHz {
+			config {
+				pins = "sdc2_clk";
+				bias-disable;		/* NO pull */
+				drive-strength = <16>;	/* 16 MA */
+			};
+		};
+
+		sdc2_clk_ds_200MHz: sdc2_clk_ds_200MHz {
+			config {
+				pins = "sdc2_clk";
+				bias-disable;		/* NO pull */
+				drive-strength = <16>;	/* 16 MA */
+			};
+		};
+
+		sdc2_cmd_on: sdc2_cmd_on {
+			config {
+				pins = "sdc2_cmd";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+		sdc2_cmd_off: sdc2_cmd_off {
+			config {
+				pins = "sdc2_cmd";
+				bias-pull-up;		/* pull up */
+				drive-strength = <2>;	/* 2 MA */
+			};
+		};
+
+		sdc2_cmd_ds_400KHz: sdc2_cmd_ds_400KHz {
+			config {
+				pins = "sdc2_cmd";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+		sdc2_cmd_ds_50MHz: sdc2_cmd_ds_50MHz {
+			config {
+				pins = "sdc2_cmd";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+		sdc2_cmd_ds_100MHz: sdc2_cmd_ds_100MHz {
+			config {
+				pins = "sdc2_cmd";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+		sdc2_cmd_ds_200MHz: sdc2_cmd_ds_200MHz {
+			config {
+				pins = "sdc2_cmd";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+		sdc2_data_on: sdc2_data_on {
+			config {
+				pins = "sdc2_data";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+		sdc2_data_off: sdc2_data_off {
+			config {
+				pins = "sdc2_data";
+				bias-pull-up;		/* pull up */
+				drive-strength = <2>;	/* 2 MA */
+			};
+		};
+
+		sdc2_data_ds_400KHz: sdc2_data_ds_400KHz {
+			config {
+				pins = "sdc2_data";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+		sdc2_data_ds_50MHz: sdc2_data_ds_50MHz {
+			config {
+				pins = "sdc2_data";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+		sdc2_data_ds_100MHz: sdc2_data_ds_100MHz {
+			config {
+				pins = "sdc2_data";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+		sdc2_data_ds_200MHz: sdc2_data_ds_200MHz {
+			config {
+				pins = "sdc2_data";
+				bias-pull-up;		/* pull up */
+				drive-strength = <10>;	/* 10 MA */
+			};
+		};
+
+};
+
 &dsi0 {
 	status = "okay";
 	vdda-supply = <&vdda_mipi_dsi0_1p2>;
@@ -646,8 +1085,8 @@
 		reset-gpios = <&tlmm 6 GPIO_ACTIVE_HIGH>;
 
 		pinctrl-names = "panel_active", "panel_suspend";
-		pinctrl-0 = <&sde_poco_dsi_active>;
-		pinctrl-1 = <&sde_poco_dsi_suspend>;
+		pinctrl-0 = <&sde_dsi_active>;
+		pinctrl-1 = <&sde_dsi_suspend>;
 
 		ports {
 			#address-cells = <1>;
@@ -678,4 +1117,135 @@
 
 &mdss_mdp {
 	status = "okay";
+};
+
+&labibb {
+	status = "okay";
+};
+
+&ibb_regulator {
+	regulator-always-on;
+};
+
+&lab_regulator {
+	regulator-always-on;
+};
+
+&pmi8998_wled {
+	status = "okay";
+	qcom,current-limit-microamp = <20000>;
+	qcom,enabled-strings = <0 1>;
+	qcom,cabc;
+	qcom,switching-freq = <600>;
+};
+/*
+        &dma {
+                #dma-cells = <5>;
+//		#address-cells = <5>;
+//		#size-cells = <5>;
+                compatible = "qcom,gpi-dma";
+//                reg = <a00000 60000>;
+		reg = <0 0xa00000 0 0x60000>;
+                reg-names = "gpi-top";
+                interrupts = <0 279 0>, <0 280 0>, <0 281 0>, <0 282 0>,
+                             <0 283 0>, <0 284 0>, <0 293 0>, <0 294 0>,
+                             <0 295 0>, <0 296 0>, <0 297 0>, <0 298 0>,
+                             <0 299 0>;
+                qcom,max-num-gpii = <13>;
+                qcom,gpii-mask = <0xfa>;
+                qcom,ev-factor = <2>;
+                iommus = <&apps_smmu 0x06d6 0x0>;
+                qcom,smmu-cfg = <0x1>;
+                qcom,iova-range = <0x0 0x100000 0x0 0x100000>;
+                status = "okay";
+        };
+*/
+/*
+&apps_smmu {
+
+	status = "okay";
+
+};
+*/
+/*
+&lpasscc {
+
+	status= "okay";
+
+};
+
+&dma {
+                compatible = "ti,omap-sdma";
+                interrupts = <0 279 0>, <0 280 0>, <0 281 0>, <0 282 0>,
+                             <0 283 0>, <0 284 0>, <0 293 0>, <0 294 0>,
+                             <0 295 0>, <0 296 0>, <0 297 0>, <0 298 0>,
+                             <0 299 0>;
+                dma-channels = <13>;
+                iommus = <&apps_smmu 0x06d6 0x0>;
+                status = "okay";
+ 
+                #dma-cells = <5>;
+                };
+*/
+
+&i2c14 {
+
+        status="disabled";
+//      dmas = <&dma 0 6 3 64 0>,
+//              <&dma 1 6 3 64 0>;
+//      dma-names = "tx", "rx";
+
+        clock-frequency = <400000>;
+        novatek@62 {
+                compatible = "novatek,NVT-ts";
+                reg = <0x62>;
+                status = "okay";
+
+                vddio-supply = <&vreg_l14a_1p88>;
+//                avdd-supply = <&pm8994_l22>;
+                lab-supply = <&lab_regulator>;
+                ibb-supply = <&ibb_regulator>;
+                novatek,vddio-reg-name = "vddio";
+                novatek,lab-reg-name = "lab";
+                novatek,ibb-reg-name = "ibb";
+
+                novatek,reset-tddi = <&tlmm 6 0x00 /* GPIO_ACTIVE_HIGH */ >;
+                novatek,reset-gpio = <&tlmm 32 0x00 /* GPIO_ACTIVE_HIGH */ >;
+                novatek,irq-gpio = <&tlmm 31 0x2001>;
+		enable-active-high;
+
+                pinctrl-names = "pmx_ts_active", "pmx_ts_suspend";
+//		pinctrl-names = "default", "suspend";
+                pinctrl-0 = <&ts_int_active &ts_reset_active>;  
+                pinctrl-1 = <&ts_int_suspend &ts_reset_suspend>;
+                novatek,config-array-size = <2>;
+                novatek,dump-click-count;
+                novatek,cfg_0 {
+                        novatek,tp-vendor = <0x46>;
+                        novatek,hw-version = <0x1>;
+                        novatek,fw-name = "novatek_nt36672_e10_hw01.fw";
+//                      novatek,clicknum-file-name = "nvt+tianma";
+                };
+                novatek,cfg_1 {
+                        novatek,tp-vendor = <0x46>;
+                        novatek,hw-version = <0x2>;
+                        novatek,fw-name = "novatek_nt36672_e10_hw02.fw";
+//                      novatek,clicknum-file-name = "nvt+tianma";
+                };
+        };
+ 
+};
+
+&qup_i2c14_default{
+        pinconf {
+                pins = "gpio33", "gpio34";
+                drive-strength = <2>;
+                bias-pull-up;
+        };
+};
+ 
+&uart14 {
+ 
+        status = "okay";
+
 };
